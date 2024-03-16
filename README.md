@@ -5,9 +5,10 @@ Pictures are not provided and must be placed into a local directory before hosti
 
 ## Run
 
-1. Launch backend server
-  1.1 `cd server`
-  1.2 `flask run --port=5001`
+1. `source venv/bin/activate`
+2. Launch backend server
+  2.1 `cd server`
+  2.2 `flask run --port=5001`
 
 ## Architecture
 
