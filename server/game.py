@@ -1,6 +1,10 @@
 from enum import Enum
 from flask import jsonify
 
+import logging
+
+log = logging.getLogger('codepics')
+
 class LobbyState(str, Enum):
     WAITING = "waiting"
     PLAYING = "playing"
@@ -28,21 +32,30 @@ class Game:
             'game_id': self.game_id,
             'players': self.players,
             'max_players': self.max_players,
-            'state': self.lobby_state,
-            'requires_password': False
+            'state': self.lobby_state
         }
 
 
 class GameList:
     def __init__(self):
-        self.games = []
+        self.games = {}
         self.id_counter = 0
 
     def games_to_dict(self):
-        return jsonify({'games': [g.lobby_info() for g in self.games]})
+        return jsonify({'games': [g.lobby_info() for g in self.games.values()]})
 
-    def create_game(self):
+    def reserve_lobby(self):
         game_id = self.id_counter
         self.id_counter += 1
-        self.games.append(Game(game_id))
         return game_id
+
+    def create_or_join_game(self, game_id):
+        if (game_id >= self.id_counter):
+            return False
+
+        if game_id not in self.games:
+            self.games[game_id] = Game(game_id)
+        else:
+            self.games[game_id].players += 1
+
+        return True
