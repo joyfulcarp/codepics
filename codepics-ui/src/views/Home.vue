@@ -17,7 +17,7 @@
       <tbody>
         <tr v-for="(game, index) in games" :key="index">
           <td>{{ game.game_id }}</td>
-          <td>{{ game.players }}/{{ game.max_players }}</td>
+          <td>{{ game.players }}</td>
           <td>{{ game.state }}</td>
         </tr>
       </tbody>

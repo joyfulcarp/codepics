@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_socketio import (
     SocketIO,
@@ -43,29 +43,28 @@ def create_game():
 # Socket handling #
 ###################
 
-@socketio.on('connect')
-def on_connect(auth):
-    app.logger.info('Client connected')
-
 @socketio.on('disconnect')
 def on_disconnect():
-    app.logger.info('Client disconnected')
+    app.logger.info(f'Client {request.sid} disconnected')
+    game_list.on_user_disconnect(request.sid)
 
 @socketio.on('join')
 def on_join(data):
-    app.logger.info('Join game')
-    # name = data['name']
+    client = request.sid
     game_id = data['game_id']
-    valid = game_list.create_or_join_game(game_id)
-    if (valid):
+    name = data['name']
+    app.logger.info(f'Client {client} (aka: {name}) joining game {game_id}')
+
+    valid = game_list.create_or_join_game(game_id, name, client)
+    if valid:
         join_room('game_id')
-        send({'valid_game_id': True})
     else:
         send({'valid_game_id': False})
 
 @socketio.on('leave')
 def on_leave(data):
-    app.logger.info('Leave game')
+    app.logger.info(f'Client {request.sid} left the game')
+    game_list.on_user_disconnect(request.sid)
 
 if __name__ == '__main__':
     socketio.run()

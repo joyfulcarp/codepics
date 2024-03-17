@@ -2,6 +2,9 @@
   <div>
     <h1 v-if="sock == null">Invalid game ID</h1>
     <div v-else>
+      <div>
+        Name: <input v-model="name" placeholder="Name" />
+      </div>
     </div>
   </div>
 </template>
@@ -11,14 +14,16 @@ import { io } from 'socket.io-client'
 
 import {
   onUnmounted,
+  ref,
   watch
 } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
-// const gameId = ref(NaN)
 let gameId
 let sock
+
+const name = ref('')
 
 watch(
   () => route.params.id,
@@ -49,7 +54,10 @@ watch(() => gameId, async (newId, oldId) => {
     sock.emit('leave', {'game_id': gameId})
   }
 
-  sock.emit('join', {'game_id': gameId})
+  sock.emit('join', {
+    'game_id': gameId,
+    'name': name.value
+  })
 }, {immediate: true})
 
 onUnmounted(() => {
