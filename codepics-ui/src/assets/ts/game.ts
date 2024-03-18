@@ -17,6 +17,10 @@ export interface GameState {
   teams: Teams
 }
 
+interface GameUpdate {
+  game: GameState
+}
+
 export class GameEvents {
   socket: io
   game: Ref<GameState>
@@ -26,6 +30,7 @@ export class GameEvents {
     this.game = game
 
     this.registerDebugEvents()
+    this.registerEvents()
   }
 
   registerDebugEvents() {
@@ -37,6 +42,11 @@ export class GameEvents {
       console.log(eventName)
       console.log(args)
     })
+  }
+
+  registerEvents() {
+    this.socket.on("update_game", (data) => this.updateGame(data))
+    this.socket.on("update_teams",  (data) => this.updateTeams(data))
   }
 
   join(gameId: number, name: string) {
@@ -55,5 +65,13 @@ export class GameEvents {
       'game_id': gameId,
       'team': team
     })
+  }
+
+  updateGame(data: GameUpdate) {
+    this.game.value = data.game
+  }
+
+  updateTeams(data: GameUpdate)  {
+    this.game.value.teams = data.game.teams
   }
 }

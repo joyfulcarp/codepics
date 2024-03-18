@@ -73,6 +73,8 @@ class Game:
 
     def game_info(self):
         return {
+            'id': self.game_id,
+            'lobby_state': self.lobby_state,
             'teams': self.team_info()
         }
 
@@ -108,6 +110,9 @@ class GameList:
         self.id_counter += 1
         return game_id
 
+    def build_update_template(self, game_id):
+        return {'game': self.games[game_id].game_info()}
+
     def create_or_join_game(self, client, data):
         game_id = data['game_id']
         name = data['name']
@@ -127,6 +132,9 @@ class GameList:
         self.client_to_games[client].add(game_id)
         join_room(game_id)
 
+        response = self.build_update_template(game_id)
+        emit('update_game', response)
+
     def on_user_disconnect(self, client):
         if client not in self.client_to_games:
             return
@@ -144,4 +152,5 @@ class GameList:
         game = self.games[game_id]
         game.join_team(client, team)
 
-        emit('update_teams', game.game_info(), to=game_id)
+        response = self.build_update_template(game_id)
+        emit('update_teams', response)

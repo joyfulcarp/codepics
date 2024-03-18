@@ -7,7 +7,7 @@
     <Team
       :team="'red'"
       :info="game.teams['red']"
-      @join-team="joinTeam(props.gameId, 'red')" />
+      @join-team="events.joinTeam(props.gameId, 'red')" />
   </div>
 </template>
 
@@ -38,7 +38,7 @@ onMounted(() => {
   }
 })
 
-watch(props.gameId, (newId, oldId) => {
+watch(() => props.gameId, (newId, oldId) => {
   events.leave(oldId)
   game.value = null
   events.join(newId, props.name)
