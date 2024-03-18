@@ -1,11 +1,6 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from flask_socketio import (
-    SocketIO,
-    join_room,
-    leave_room,
-    send
-)
+from flask_socketio import SocketIO
 
 from game import GameList
 
@@ -20,7 +15,7 @@ CORS(app, resources={r'/*': {'origins': frontend_url}})
 # WebSockets for communication in games
 socketio = SocketIO(app, cors_allowed_origins=frontend_url, logger=True)
 
-game_list = GameList()
+cafe = GameList()
 
 ###########
 # Routing #
@@ -32,11 +27,11 @@ def ping_pong():
 
 @app.route('/games', methods=['GET'])
 def games():
-    return game_list.games_to_dict()
+    return jsonify(cafe.games_to_dict())
 
 @app.route('/create_game', methods=['POST'])
 def create_game():
-    game_id = game_list.reserve_lobby()
+    game_id = cafe.reserve_lobby()
     return jsonify({'game_id': game_id})
 
 ###################
@@ -45,26 +40,19 @@ def create_game():
 
 @socketio.on('disconnect')
 def on_disconnect():
-    app.logger.info(f'Client {request.sid} disconnected')
-    game_list.on_user_disconnect(request.sid)
+    cafe.on_user_disconnect(request.sid)
 
 @socketio.on('join')
 def on_join(data):
-    client = request.sid
-    game_id = data['game_id']
-    name = data['name']
-    app.logger.info(f'Client {client} (aka: {name}) joining game {game_id}')
-
-    valid = game_list.create_or_join_game(game_id, name, client)
-    if valid:
-        join_room('game_id')
-    else:
-        send({'valid_game_id': False})
+    cafe.create_or_join_game(request.sid, data)
 
 @socketio.on('leave')
 def on_leave(data):
-    app.logger.info(f'Client {request.sid} left the game')
-    game_list.on_user_disconnect(request.sid)
+    cafe.on_user_disconnect(request.sid)
+
+@socketio.on('switch_team')
+def on_switch_team(data):
+    cafe.on_switch_team(request.sid, data)
 
 if __name__ == '__main__':
     socketio.run()

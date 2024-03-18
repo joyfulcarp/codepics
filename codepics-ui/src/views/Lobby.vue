@@ -5,11 +5,21 @@
       <div>
         Name: <input v-model="name" placeholder="Name" />
       </div>
+      <Team
+        :team="'blue'"
+        :info="game.teams['blue']"
+        @join-team="joinTeam('blue')" />
+      <Team
+        :team="'red'"
+        :info="game.teams['red']"
+        @join-team="joinTeam('red')" />
     </div>
   </div>
 </template>
 
 <script setup>
+import Team from '@/components/Team.vue'
+
 import { io } from 'socket.io-client'
 
 import {
@@ -24,6 +34,18 @@ let gameId
 let sock
 
 const name = ref('')
+const game = ref({
+  'teams': {
+    'blue': {
+      'members': [],
+      'cards': '-'
+    },
+    'red': {
+      'members': [],
+      'cards': '-'
+    }
+  }
+})
 
 watch(
   () => route.params.id,
@@ -64,4 +86,7 @@ onUnmounted(() => {
   sock.emit('leave', {'game_id': gameId})
 })
 
+function joinTeam(team) {
+  sock.emit('switch_team', {'game_id': gameId, 'team': team})
+}
 </script>
