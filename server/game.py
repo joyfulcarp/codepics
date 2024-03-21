@@ -248,7 +248,7 @@ class GameList:
         else:
             self.client_to_games[client].add(game_id)
 
-        join_room(game_id)
+        join_room(room(game_id))
 
         response = self.build_update_template(game)
         emit('update_game', response)
@@ -260,6 +260,7 @@ class GameList:
         for game_id in self.client_to_games[client]:
             game = self.games[game_id]
             game.leave_game(client)
+            leave_room(room(game_id))
             if game.num_players() == 0:
                 del self.games[game_id]
         del self.client_to_games[client]
@@ -284,3 +285,7 @@ class GameList:
         else:
             response = self.build_update_template(game_id)
             emit('update_game', response)
+
+
+def room(game_id: int):
+    return f'game_{game_id}'
