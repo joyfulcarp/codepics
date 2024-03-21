@@ -6,7 +6,7 @@ from game import GameList
 
 frontend_url = 'http://localhost:5173'
 
-app = Flask("codepics")
+app = Flask('codepics')
 app.config.from_object(__name__)
 
 # Enable CORS
@@ -54,5 +54,8 @@ def on_leave(data):
 def on_switch_team(data):
     cafe.on_switch_team(request.sid, data)
 
+def main():
+    socketio.run(debug=True)
+
 if __name__ == '__main__':
-    socketio.run()
+    main()
