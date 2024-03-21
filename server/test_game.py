@@ -29,7 +29,7 @@ class TestGame(unittest.TestCase):
         self.assertEqual(self.game.num_players(), 0)
         self.assertFalse(self.game.has_player('foo'))
 
-    def test_join_team(self):
+    def test_join_leave_team(self):
         self.game.join_game('foo', 'bar')
 
         self.game.join_team('foo', 'red', False)
@@ -44,8 +44,20 @@ class TestGame(unittest.TestCase):
         self.assertEqual(self.game.teams[Team.RED].team, set({'foo'}))
         self.assertEqual(self.game.teams[Team.RED].spymaster, 'foo')
 
+        self.game.join_team('foo', 'blue', True)
+        self.assertEqual(self.game.teams[Team.BLUE].team, set({'foo'}))
+        self.assertEqual(self.game.teams[Team.BLUE].spymaster, 'foo')
+        self.assertEqual(self.game.teams[Team.RED].team, set())
+        self.assertEqual(self.game.teams[Team.RED].spymaster, None)
+
         self.game.join_team('foo', 'blue', False)
         self.assertEqual(self.game.teams[Team.BLUE].team, set({'foo'}))
+        self.assertEqual(self.game.teams[Team.BLUE].spymaster, None)
+        self.assertEqual(self.game.teams[Team.RED].team, set())
+        self.assertEqual(self.game.teams[Team.RED].spymaster, None)
+
+        self.game.leave_game('foo')
+        self.assertEqual(self.game.teams[Team.BLUE].team, set())
         self.assertEqual(self.game.teams[Team.BLUE].spymaster, None)
         self.assertEqual(self.game.teams[Team.RED].team, set())
         self.assertEqual(self.game.teams[Team.RED].spymaster, None)
@@ -59,6 +71,30 @@ class TestGame(unittest.TestCase):
         self.assertEqual(self.game, orig)
         self.game.join_team('foo', 'what', False)
         self.assertEqual(self.game, orig)
+
+    def test_start_game(self):
+        self.game.join_game('a', 'a')
+        self.game.join_game('b', 'b')
+        self.game.join_game('c', 'c')
+        self.game.join_game('d', 'd')
+
+        self.game.join_team('a', 'blue', True)
+        self.game.join_team('b', 'red', False)
+        self.game.join_team('c', 'red', True)
+        err = self.game.start_game()
+        self.assertTrue(err)
+
+        self.game.join_team('a', 'blue', False)
+        err = self.game.start_game()
+        self.assertTrue(err)
+
+        self.game.join_team('d', 'blue', False)
+        err = self.game.start_game()
+        self.assertTrue(err)
+
+        self.game.join_team('a', 'blue', True)
+        err = self.game.start_game()
+        self.assertTrue(err == None)
 
 
 if __name__ == '__main__':

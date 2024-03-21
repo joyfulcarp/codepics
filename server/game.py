@@ -39,14 +39,15 @@ class TeamData:
     def __eq__(self, other):
         return (self.team, self.spymaster) == (other.team, other.spymaster)
 
-    def ready():
-        return spymaster is not None and len(team) >= 2
+    def ready(self):
+        return self.spymaster is not None and len(self.team) >= 2
 
 
 class Card:
-    def __init__(self):
-        self.team: Team = None
-        self.asset: str = None
+    def __init__(self, team: Team, asset: str):
+        self.team = team
+        self.asset = asset
+        self.hidden = True
 
     def __eq__(self, other):
         return (self.team, self.asset) == (other.team, other.asset)
@@ -99,6 +100,8 @@ class Game:
             self.host = client
 
     def leave_game(self, client: str):
+        self.leave_teams(client)
+
         if client in self.client_to_name:
             del self.client_to_name[client]
         if client == self.host:
@@ -123,13 +126,20 @@ class Game:
         else:
             return
 
-        leave_team.team.discard(client)
-        if leave_team.spymaster == client:
-            leave_team.spymaster = None
+        self.leave_teams(client)
 
         join_team.team.add(client)
         if as_spymaster:
             join_team.spymaster = client
+
+    def leave_teams(self, client: str):
+        def leave(team: TeamData):
+            team.team.discard(client)
+            if team.spymaster == client:
+                team.spymaster = None
+
+        leave(self.teams[Team.BLUE])
+        leave(self.teams[Team.RED])
 
     def start_game(self) -> str:
         if not self.teams[Team.BLUE].ready() or not self.teams[Team.RED].ready():
@@ -138,7 +148,10 @@ class Game:
         self.lobby_state = LobbyState.PLAYING
         first_team = Team.BLUE if random.randint(0, 1) == 0 else Team.RED
         self.generate_cards(first_team)
-        self.play_state = BLUE_SPYMASTER if first_team == Team.BLUE else RED_SPYMASTER
+        if first_team == Team.BLUE:
+            self.play_state = PlayState.BLUE_SPYMASTER
+        else:
+            self.play_state = PlayState.RED_SPYMASTER
         return None
 
     def generate_cards(self, first_team: Team):
@@ -154,12 +167,12 @@ class Game:
         self.cards = []
         for i in range(0, 8):
             self.cards.append(Card(first_team, drawn_cards[i]))
-        second_team = Team.BLUE if first_team == Team.Red else Team.Red
+        second_team = Team.BLUE if first_team == Team.RED else Team.RED
         for i in range(8, 15):
             self.cards.append(Card(second_team, drawn_cards[i]))
         for i in range(15, 20):
             self.cards.append(Card(Team.INNOCENT, drawn_cards[i]))
-        self.cards.append(Card(Team.ASSASSIN, drawn_cards[20]))
+        self.cards.append(Card(Team.ASSASSIN, drawn_cards[19]))
 
         # Shuffle order for display
         random.shuffle(self.cards)
@@ -190,16 +203,6 @@ class Game:
             'blue': self.team_info(Team.BLUE),
             'red': self.team_info(Team.RED)
         }
-        # return {
-        #     'blue': {
-        #         'members': self.players_in_team(Team.BLUE),
-        #         'cards': '-'
-        #     },
-        #     'red': {
-        #         'members': self.players_in_team(Team.RED),
-        #         'cards': '-'
-        #     }
-        # }
 
     def game_info(self):
         return {
