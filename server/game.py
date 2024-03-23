@@ -74,6 +74,14 @@ class GameSetupError(Exception):
     pass
 
 
+class TurnError(Exception):
+    pass
+
+
+class ActionError(Exception):
+    pass
+
+
 @dataclass
 class Game:
     def __init__(self, game_id: int, collection: str = 'test'):
@@ -95,6 +103,14 @@ class Game:
 
     def has_player(self, client: str) -> bool:
         return client in self.client_to_name
+
+    def player_team(self, client: str) -> Team:
+        if client in self.teams[Team.BLUE].members:
+            return Team.BLUE
+        elif  client in self.teams[Team.RED].members:
+            return Team.RED
+        else:
+            raise GameSetupError('Player not in game')
 
     def teams_ready(self) -> bool:
         return self.teams[Team.BLUE].ready() and self.teams[Team.RED].ready()
@@ -147,6 +163,9 @@ class Game:
         leave(self.teams[Team.BLUE])
         leave(self.teams[Team.RED])
 
+    def next_state(self, state: PlayState):
+        self.play_state = state
+
     def start_game(self, first_team: Team, cards: list[Card]):
         assert len(cards) == 20
         assert first_team in [Team.BLUE, Team.RED]
@@ -165,9 +184,38 @@ class Game:
         match self.play_state:
             case Prep() | Win():
                 self.cards = cards
-                self.play_state = SpymasterTurn(first_team)
+                self.next_state(SpymasterTurn(first_team))
             case _:
                 raise GameSetupError('Game in progress')
+
+    def give_hint(self, client: str, hint: str, count: int):
+        match self.play_state:
+            case SpymasterTurn(curr_team):
+                if client != self.teams[curr_team].spymaster:
+                    raise ActionError('Player is not spymaster of current team')
+
+                actions = AgentActions((hint, count))
+                self.next_state(AgentTurn(curr_team, actions))
+            case _:
+                raise TurnError('Not a spymaster turn')
+
+    def vote(self, client: str, card: int):
+        match self.play_state:
+            case AgentTurn(curr_team, actions):
+                if card < 0 or card >= len(self.cards):
+                    raise ActionError('Out-of-bounds card index')
+                if not self.cards[card].hidden:
+                    raise ActionError('Card already revealed')
+
+                player_team = self.player_team(client)
+                if player_team != curr_team:
+                    raise TurnError('Player not in voting team')
+                if client == self.teams[player_team].spymaster:
+                    raise ActionError('Spymaster cannot vote')
+
+                actions.votes[client] = card
+            case _:
+                raise TurnError('Not a voting turn')
 
 
 def switch_team(team: Team) -> Team:
