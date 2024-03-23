@@ -193,6 +193,7 @@ class Game:
         cards = []
         for team, i in shuffle:
             cards.append(Card(team, images[i]))
+        return cards
 
     def vote(self, client: str, card: int):
         match self.play_state:

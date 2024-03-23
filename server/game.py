@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from enum import Enum
 
+import random
+
 class Team(str, Enum):
     BLUE = 'blue'
     RED = 'red'
@@ -68,6 +70,10 @@ class Card:
     hidden: bool = True
 
 
+class GameSetupError(Exception):
+    pass
+
+
 @dataclass
 class Game:
     def __init__(self, game_id: int, collection: str = 'test'):
@@ -84,11 +90,14 @@ class Game:
         }
         self.cards: list[Card] = []
 
-    def num_players(self):
+    def num_players(self) -> int:
         return len(self.client_to_name)
 
-    def has_player(self, client: str):
+    def has_player(self, client: str) -> bool:
         return client in self.client_to_name
+
+    def teams_ready(self) -> bool:
+        return self.teams[Team.BLUE].ready() and self.teams[Team.RED].ready()
 
     def update_name(self, client: str, name: str):
         if client in self.client_to_name:
@@ -138,7 +147,40 @@ class Game:
         leave(self.teams[Team.BLUE])
         leave(self.teams[Team.RED])
 
-def shuffle_deck(deck_size: int, first_team: Team) -> list[(Team, int)]:
+    def start_game(self, first_team: Team, cards: list[Card]):
+        assert len(cards) == 20
+        assert first_team in [Team.BLUE, Team.RED]
+
+        def count(team: Team) -> int:
+            return sum(1 for c in cards if c.team == team)
+
+        assert count(first_team) == 8
+        assert count(switch_team(first_team)) == 7
+        assert count(Team.INNOCENT) == 4
+        assert count(Team.ASSASSIN) == 1
+
+        if not self.teams_ready():
+            raise GameSetupError('Both teams need a spymaster and at least one agent')
+
+        match self.play_state:
+            case Prep() | Win():
+                self.cards = cards
+                self.play_state = SpymasterTurn(first_team)
+            case _:
+                raise GameSetupError('Game in progress')
+
+
+def switch_team(team: Team) -> Team:
+    match team:
+        case Team.BLUE:
+            return Team.RED
+        case Team.RED:
+            return Team.BLUE
+        case _:
+            raise AssertionError('Player teams can only be blue or red')
+
+
+def draw_cards(deck: list[int], first_team: Team) -> list[(Team, int)]:
     """Shuffle and draw 20 cards from deck
     Pick 20 cards and assign:
     * 8 for first team
@@ -146,27 +188,30 @@ def shuffle_deck(deck_size: int, first_team: Team) -> list[(Team, int)]:
     * 4 innocent bystanders
     * 1 assassin
     """
-    deck = [i for i in range(deck_size)]
+    assert len(deck) >= 20
+    second_team = switch_team(first_team)
+
     drawn_cards = random.sample(deck, 20)
 
     assigned_cards: list[(Team, int)] = []
     for i in range(0, 8):
         assigned_cards.append((first_team, drawn_cards[i]))
-    second_team = Team.BLUE if first_team == Team.RED else Team.RED
     for i in range(8, 15):
         assigned_cards.append((second_team, drawn_cards[i]))
-    for i in range(15, 20):
+    for i in range(15, 19):
         assigned_cards.append((Team.INNOCENT, drawn_cards[i]))
     assigned_cards.append((Team.ASSASSIN, drawn_cards[19]))
 
-    # Shuffle order for display
-    random.shuffle(assigned_cards)
     return assigned_cards
 
 
 def generate_cards(first_team: Team, images: list[str]) -> list[Card]:
-    shuffle = shuffle_deck(len(images), first_team)
+    deck = [i for i in range(len(images))]
+    draw = draw_cards(deck, first_team)
+    # Shuffle order for display
+    random.shuffle(draw)
+
     cards = []
-    for team, i in shuffle:
+    for team, i in draw:
         cards.append(Card(team, images[i]))
     return cards
