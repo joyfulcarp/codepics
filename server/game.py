@@ -30,10 +30,16 @@ class PlayState(str, Enum):
     RED_WIN = 'red_win'
 
 
+class WinCondition(Enum):
+    AGENTS_FOUND
+    ASSASSIN
+
+
 class TeamData:
     def __init__(self):
         self.team: set[str] = set()
         self.spymaster: str = None
+        self.cards_left: int = 0
 
     def __eq__(self, other):
         return (self.team, self.spymaster) == (other.team, other.spymaster)
@@ -90,6 +96,9 @@ class Game:
         }
         self.cards: list[Card] = None
         self.card_collection: str = 'test'
+        self.hint: (str, int) = None
+        self.guesses: int = 0
+        self.votes: dict[str: int] = {}
 
     # For unit testing only
     def __eq__(self, other):
@@ -184,6 +193,71 @@ class Game:
         cards = []
         for team, i in shuffle:
             cards.append(Card(team, images[i]))
+
+    def vote(self, client: str, card: int):
+        match self.play_state:
+            case PlayState.BLUE_AGENTS:
+                team = self.teams[Team.BLUE]
+            case PlayState.RED_AGENTS:
+                team = self.teams[Team.RED]
+            case _:
+                return
+
+        if client not in team.members or client is team.spymaster:
+            return
+
+        self.votes[client] = card
+
+    def flip_card(self, client: str, card_index: int):
+        if card_index < 0 or card_index >= 20:
+            return
+
+        card = self.cards[card_index]
+        card.hidden = False
+
+        match card.team:
+            case Team.ASSASSIN:
+                self.end_game(WinCondition.ASSASSIN)
+                return
+            case Team.INNOCENT:
+                self.end_guessing(client)
+                return
+
+        self.teams[card.team].cards_left -= 1
+        self.guesses += 1
+        limit = self.hint[1]
+        if limit is not None and self.guesses > limit:
+            self.end_guessing(client)
+
+    def end_guessing(self):
+        self.hint = None
+        self.guesses = 0
+        self.votes = {}
+
+        match self.play_state:
+            case PlayState.BLUE_AGENT:
+                self.play_state = PlayState.RED_SPYMASTER
+            case PlayState.RED_AGENT:
+                self.play_state = PlayState.BLUE_SPYMASTER
+
+    def end_game(self, win: WinCondition):
+        self.hint = None
+        self.guesses = 0
+        self.votes = {}
+
+        match win:
+            case WinCondition.AGENTS_FOUND:
+                match self.play_state:
+                    case PlayState.BLUE_AGENTS:
+                        self.play_state = PlayState.BLUE_WIN
+                    case PlayState.RED_AGENTS:
+                        self.play_state = PlayState.RED_WIN
+            case WinCondition.ASSASSIN:
+                match self.play_state:
+                    case PlayState.BLUE_AGENTS:
+                        self.play_state = PlayState.RED_WIN
+                    case PlayState.RED_AGENTS:
+                        self.play_state = PlayState.BLUE_WIN
 
     def lobby_info(self):
         return {
