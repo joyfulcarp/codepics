@@ -25,8 +25,10 @@ def find_images(root: str) -> dict[str: list[str]]:
 
     return collections
 
+
 def main():
     print(find_images('./static/cards'))
+
 
 if __name__ == '__main__':
     main()

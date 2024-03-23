@@ -310,3 +310,7 @@ def generate_cards(first_team: Team, images: list[str]) -> list[Card]:
     for team, i in draw:
         cards.append(Card(team, images[i]))
     return cards
+
+
+def random_first_team() -> Team:
+    return Team.BLUE if random.randint(0, 1) == 0 else Team.RED
