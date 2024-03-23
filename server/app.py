@@ -15,7 +15,7 @@ CORS(app, resources={r'/*': {'origins': frontend_url}})
 # WebSockets for communication in games
 socketio = SocketIO(app, cors_allowed_origins=frontend_url, logger=True)
 
-cafe = Cafe()
+cafe = Cafe(app.debug)
 
 ###########
 # Routing #
@@ -92,7 +92,7 @@ def on_reveal_card(data):
 
 
 def main():
-    socketio.run(debug=True)
+    socketio.run()
 
 
 if __name__ == '__main__':

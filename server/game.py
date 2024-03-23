@@ -30,7 +30,7 @@ class SpymasterTurn:
     team: Team
 
     def __str__(self):
-        return f'{team}_spymaster'
+        return f'{self.team}_spymaster'
 
 
 @dataclass
@@ -39,7 +39,7 @@ class AgentTurn:
     actions: AgentActions
 
     def __str__(self):
-        return f'{team}_agents'
+        return f'{self.team}_agents'
 
 
 @dataclass
@@ -47,7 +47,7 @@ class Win:
     team: Team
 
     def __str__(self):
-        return f'{team}_win'
+        return f'{self.team}_win'
 
 
 PlayState = Matchmaking | SpymasterTurn | AgentTurn | Win

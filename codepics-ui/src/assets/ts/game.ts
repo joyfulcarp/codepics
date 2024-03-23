@@ -60,11 +60,16 @@ export class GameEvents {
     this.socket.emit('leave', {'game_id': gameId})
   }
 
-  joinTeam(gameId: number, team: string) {
+  joinTeam(gameId: number, team: string, as_spymaster: boolean = false) {
     this.socket.emit('switch_team', {
       'game_id': gameId,
-      'team': team
+      'team': team,
+      'as_spymaster': as_spymaster
     })
+  }
+
+  startGame(gameId: number) {
+    this.socket.emit('start_game', {'game_id': gameId})
   }
 
   updateGame(data: GameUpdate) {

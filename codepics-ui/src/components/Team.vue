@@ -1,18 +1,25 @@
 <template>
-  <div>{{ info.cards }}</div>
+  <div>{{ cards }}</div>
   <div>
-    <span v-for="player in info.members">{{ player }}</span>
+    <h2>Agents</h2>
+    <span v-for="player in info['agents'].filter(p => p != info['spymaster'])">{{ player }}</span>
   </div>
   <div>
-    <button @click="$emit('joinTeam')">Join</button>
+    <h2>Spymaster</h2>
+    <span>{{ info['spymaster'] }}</span>
+  </div>
+  <div>
+    <button @click="$emit('joinTeam')">Join as Agent</button>
+    <button v-if="!info['spymaster']" @click="$emit('joinSpymaster')">Join as Spymaster</button>
   </div>
 </template>
 
 <script setup>
-defineEmits(['joinTeam'])
+defineEmits(['joinTeam', 'joinSpymaster'])
 
 const props = defineProps({
   team: String,
-  info: Object
+  info: Object,
+  cards: String
 })
 </script>
