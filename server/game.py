@@ -12,10 +12,11 @@ class Team(str, Enum):
 
 @dataclass
 class AgentActions:
-    def __init__(self, hint: (str, int)):
+    def __init__(self, hint: str, count: int):
         self.hint = hint
+        self.max_guesses = count + 1
         self.guesses: int = 0
-        self.votes: dict[str: int] = {}
+        self.votes: dict[int: set[str]] = {}
 
 
 @dataclass
@@ -194,28 +195,70 @@ class Game:
                 if client != self.teams[curr_team].spymaster:
                     raise ActionError('Player is not spymaster of current team')
 
-                actions = AgentActions((hint, count))
+                actions = AgentActions(hint, count)
                 self.next_state(AgentTurn(curr_team, actions))
             case _:
                 raise TurnError('Not a spymaster turn')
 
-    def vote(self, client: str, card: int):
-        match self.play_state:
-            case AgentTurn(curr_team, actions):
-                if card < 0 or card >= len(self.cards):
-                    raise ActionError('Out-of-bounds card index')
-                if not self.cards[card].hidden:
-                    raise ActionError('Card already revealed')
+    def _checked_agent_action(func):
+        def inner(self, client: str, card: int):
+            match self.play_state:
+                case AgentTurn(curr_team, actions):
+                    if card < 0 or card >= len(self.cards):
+                        raise ActionError('Out-of-bounds card index')
+                    if not self.cards[card].hidden:
+                        raise ActionError('Card already revealed')
 
-                player_team = self.player_team(client)
-                if player_team != curr_team:
-                    raise TurnError('Player not in voting team')
-                if client == self.teams[player_team].spymaster:
-                    raise ActionError('Spymaster cannot vote')
+                    player_team = self.player_team(client)
+                    if player_team != curr_team:
+                        raise TurnError('Player not in agent team')
+                    if client == self.teams[player_team].spymaster:
+                        raise ActionError('Spymaster cannot choose a card')
 
-                actions.votes[client] = card
+                    func(self, client, card, curr_team, actions)
+                case _:
+                    raise TurnError('Not an agent turn')
+
+        return inner
+
+    @_checked_agent_action
+    def vote(self, client: str, card: int, curr_team: Team, actions: AgentActions):
+        """Marks a card as a possible agent for other players
+
+        Example:
+        game.vote(client, card)
+        """
+        if card not in actions.votes:
+            actions.votes[card] = set({client})
+        else:
+            actions.votes[card].add(client)
+
+    @_checked_agent_action
+    def reveal_card(self, client: str, card_index: int, curr_team: Team, actions: AgentActions):
+        """Make a guess by revealing a card
+
+        Example:
+        game.reveal_card(client, card)
+        """
+        other_team = switch_team(curr_team)
+
+        card = self.cards[card_index]
+        card.hidden = False
+
+        match card.team:
+            case Team.ASSASSIN:
+                self.next_state(Win(other_team))
+            case Team.INNOCENT:
+                self.next_state(SpymasterTurn(other_team))
+            case _ if card.team == other_team:
+                self.next_state(SpymasterTurn(other_team))
             case _:
-                raise TurnError('Not a voting turn')
+                if card_index in actions.votes:
+                    del actions.votes[card_index]
+
+                actions.guesses += 1
+                if actions.guesses > actions.max_guesses:
+                    self.next_state(SpymasterTurn(other_team))
 
 
 def switch_team(team: Team) -> Team:

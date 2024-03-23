@@ -1,10 +1,13 @@
 from game import (
+    AgentActions,
+    AgentTurn,
     Card,
     Game,
     PlayState,
     SpymasterTurn,
     Team,
     TeamData,
+    Win,
 
     ActionError,
     GameSetupError,
@@ -119,11 +122,14 @@ class TestGame(unittest.TestCase):
             self.game.give_hint('c', 'hint', 1)
 
         self.game.give_hint('a', 'hint', 1)
-        self.assertEqual(self.game.play_state.actions.hint, ('hint', 1))
-        
+        self.assertEqual(self.game.play_state.actions.hint, 'hint')
+        self.assertEqual(self.game.play_state.actions.max_guesses, 2)
 
     def test_vote(self):
         self.add_members()
+        self.game.join_game('z', 'Blade')
+        self.game.join_team('z', 'blue', False)
+
         # Not a voting turn
         with self.assertRaises(TurnError):
             self.game.vote('b', 0)
@@ -149,18 +155,78 @@ class TestGame(unittest.TestCase):
         # Spymaster cannot vote
         with self.assertRaises(ActionError):
             self.game.vote('a', 0)
-        # Card already revealed
-        with self.assertRaises(ActionError):
-            self.game.vote('b', 1)
 
         self.game.vote('b', 0)
-        self.assertEqual(self.game.play_state.actions.votes, {'b': 0})
+        self.assertEqual(self.game.play_state.actions.votes, {0: {'b'}})
+        self.game.vote('b', 0)
+        self.assertEqual(self.game.play_state.actions.votes, {0: {'b'}})
+        self.game.vote('b', 2)
+        self.assertEqual(self.game.play_state.actions.votes, {0: {'b'}, 2: {'b'}})
+        self.game.vote('z', 0)
+        self.assertEqual(self.game.play_state.actions.votes, {0: {'b', 'z'}, 2: {'b'}})
+
+    def test_reveal_card(self):
+        self.add_members()
+        # Not an agent turn
+        with self.assertRaises(TurnError):
+            self.game.reveal_card('b', 0)
+
+        self.cards[1].hidden = False
+        self.game.start_game(Team.BLUE, self.cards)
+        # Not an agent turn
+        with self.assertRaises(TurnError):
+            self.game.reveal_card('b', 0)
+
+        self.game.give_hint('a', 'hint', 0)
+        # Bad card indices
+        with self.assertRaises(ActionError):
+            self.game.reveal_card('b', -1)
+        with self.assertRaises(ActionError):
+            self.game.reveal_card('b', 20)
+        # Card already revealed
+        with self.assertRaises(ActionError):
+            self.game.reveal_card('b', 1)
+        # Player not in voting team
+        with self.assertRaises(TurnError):
+            self.game.reveal_card('c', 0)
+        # Spymaster cannot reveal_card
+        with self.assertRaises(ActionError):
+            self.game.reveal_card('a', 0)
+
+        self.game.vote('b', 0)
+        self.assertEqual(self.game.play_state.actions.votes, {0: {'b'}})
+        self.game.reveal_card('b', 0)
+        self.assertEqual(self.game.play_state.actions.votes, {})
+        self.assertEqual(self.game.play_state.actions.guesses, 1)
+
+        # Card already revealed
+        with self.assertRaises(ActionError):
+            self.game.reveal_card('b', 0)
+
+        # Switch turns when out of guesses
+        self.game.reveal_card('b', 2)
+        self.assertEqual(self.game.play_state, SpymasterTurn(Team.RED))
+
+        # Switch turns when selecting other team's card
+        self.game.next_state(AgentTurn(Team.BLUE, AgentActions('hint', 0)))
+        self.game.reveal_card('b', 8);
+        self.assertEqual(self.game.play_state, SpymasterTurn(Team.RED))
+
+        # Switch turns when selecting innocent card
+        self.game.next_state(AgentTurn(Team.BLUE, AgentActions('hint', 0)))
+        self.game.reveal_card('b', 15);
+        self.assertEqual(self.game.play_state, SpymasterTurn(Team.RED))
+
+        # Lose when selecting assassin card
+        self.game.next_state(AgentTurn(Team.BLUE, AgentActions('hint', 0)))
+        self.game.reveal_card('b', 19);
+        self.assertEqual(self.game.play_state, Win(Team.RED))
 
     def add_members(self):
-        self.game.join_game('b', 'b')
-        self.game.join_game('a', 'a')
-        self.game.join_game('c', 'c')
-        self.game.join_game('d', 'd')
+        self.game.join_game('a', 'Daniel')
+        self.game.join_game('b', 'Kafka')
+        self.game.join_game('c', 'Alan')
+        self.game.join_game('d', 'Mario')
 
         self.game.join_team('a', 'blue', True)
         self.game.join_team('b', 'blue', False)
