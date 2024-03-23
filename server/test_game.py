@@ -1,4 +1,4 @@
-from game import (
+from cafe import (
     Game,
     Team,
     TeamData,

@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_socketio import SocketIO
 
-from game import GameList
+from cafe import GameList
 
 frontend_url = 'http://localhost:5173'
 
