@@ -73,6 +73,8 @@ class TestGame(unittest.TestCase):
         self.assertEqual(self.game, orig)
 
     def test_start_game(self):
+        images = [str(i) for i in range(20)]
+
         self.game.join_game('a', 'a')
         self.game.join_game('b', 'b')
         self.game.join_game('c', 'c')
@@ -81,19 +83,19 @@ class TestGame(unittest.TestCase):
         self.game.join_team('a', 'blue', True)
         self.game.join_team('b', 'red', False)
         self.game.join_team('c', 'red', True)
-        err = self.game.start_game()
+        err = self.game.start_game(images)
         self.assertTrue(err)
 
         self.game.join_team('a', 'blue', False)
-        err = self.game.start_game()
+        err = self.game.start_game(images)
         self.assertTrue(err)
 
         self.game.join_team('d', 'blue', False)
-        err = self.game.start_game()
+        err = self.game.start_game(images)
         self.assertTrue(err)
 
         self.game.join_team('a', 'blue', True)
-        err = self.game.start_game()
+        err = self.game.start_game(images)
         self.assertTrue(err == None)
 
 

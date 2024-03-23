@@ -1,3 +1,5 @@
+from images import find_images
+
 from flask_socketio import (
     emit,
     join_room
@@ -5,10 +7,7 @@ from flask_socketio import (
 
 from enum import Enum
 
-import logging
 import random
-
-log = logging.getLogger('codepics')
 
 class Team(str, Enum):
     BLUE = 'blue'
@@ -53,6 +52,31 @@ class Card:
         return (self.team, self.asset) == (other.team, other.asset)
 
 
+def shuffle_deck(deck_size: int, first_team: Team) -> list[(Team, int)]:
+    """Shuffle and draw 20 cards from deck
+    Pick 20 cards and assign:
+    * 8 for first team
+    * 7 for second team
+    * 4 innocent bystanders
+    * 1 assassin
+    """
+    deck = [i for i in range(deck_size)]
+    drawn_cards = random.sample(deck, 20)
+
+    assigned_cards: list[(Team, int)] = []
+    for i in range(0, 8):
+        assigned_cards.append((first_team, drawn_cards[i]))
+    second_team = Team.BLUE if first_team == Team.RED else Team.RED
+    for i in range(8, 15):
+        assigned_cards.append((second_team, drawn_cards[i]))
+    for i in range(15, 20):
+        assigned_cards.append((Team.INNOCENT, drawn_cards[i]))
+    assigned_cards.append((Team.ASSASSIN, drawn_cards[19]))
+
+    # Shuffle order for display
+    random.shuffle(assigned_cards)
+    return assigned_cards
+
 class Game:
     def __init__(self, game_id: int):
         self.game_id = game_id
@@ -65,7 +89,7 @@ class Game:
             Team.RED: TeamData()
         }
         self.cards: list[Card] = None
-
+        self.card_collection: str = 'test'
 
     # For unit testing only
     def __eq__(self, other):
@@ -94,7 +118,6 @@ class Game:
         return client in self.client_to_name
 
     def join_game(self, client: str, name: str):
-        log.info(type(client))
         self.client_to_name[client] = name
         if self.host is None:
             self.host = client
@@ -141,41 +164,26 @@ class Game:
         leave(self.teams[Team.BLUE])
         leave(self.teams[Team.RED])
 
-    def start_game(self) -> str:
+    def start_game(self, images: list[str]) -> str:
         if not self.teams[Team.BLUE].ready() or not self.teams[Team.RED].ready():
             return 'Both teams need a spymaster and at least one agent.'
+        if len(images) < 20:
+            return 'Need at least 20 images to start a game'
 
         self.lobby_state = LobbyState.PLAYING
         first_team = Team.BLUE if random.randint(0, 1) == 0 else Team.RED
-        self.generate_cards(first_team)
+        self.cards = self.generate_cards(first_team, images)
         if first_team == Team.BLUE:
             self.play_state = PlayState.BLUE_SPYMASTER
         else:
             self.play_state = PlayState.RED_SPYMASTER
         return None
 
-    def generate_cards(self, first_team: Team):
-        # TODO: Replace with actual assets
-        deck = [str(i) for i in range(0, 100)]
-
-        # Pick 20 cards and assign:
-        # * 8 for first team
-        # * 7 for second team
-        # * 4 innocent bystanders
-        # * 1 assassin
-        drawn_cards = random.sample(deck, 20)
-        self.cards = []
-        for i in range(0, 8):
-            self.cards.append(Card(first_team, drawn_cards[i]))
-        second_team = Team.BLUE if first_team == Team.RED else Team.RED
-        for i in range(8, 15):
-            self.cards.append(Card(second_team, drawn_cards[i]))
-        for i in range(15, 20):
-            self.cards.append(Card(Team.INNOCENT, drawn_cards[i]))
-        self.cards.append(Card(Team.ASSASSIN, drawn_cards[19]))
-
-        # Shuffle order for display
-        random.shuffle(self.cards)
+    def generate_cards(self, first_team: Team, images: list[str]):
+        shuffle = shuffle_deck(len(images), first_team)
+        cards = []
+        for team, i in shuffle:
+            cards.append(Card(team, images[i]))
 
     def lobby_info(self):
         return {
@@ -217,6 +225,7 @@ class GameList:
         self.games: dict[int: Game] = {}
         self.client_to_games: dict[str: list[int]] = {}
         self.id_counter = 0
+        self.images = find_images('./static/cards')
 
     def games_to_dict(self):
         return {'games': [g.lobby_info() for g in self.games.values()]}
