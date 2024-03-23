@@ -20,9 +20,9 @@ class AgentActions:
 
 
 @dataclass
-class Prep:
+class Matchmaking:
     def __str__(self):
-        return 'prep'
+        return 'matchmaking'
 
 
 @dataclass
@@ -50,7 +50,7 @@ class Win:
         return f'{team}_win'
 
 
-PlayState = Prep | SpymasterTurn | AgentTurn | Win
+PlayState = Matchmaking | SpymasterTurn | AgentTurn | Win
 
 
 @dataclass
@@ -92,7 +92,7 @@ class Game:
         self.client_to_name: dict[str: str] = {}
         self.host: str = None
 
-        self.play_state: PlayState = Prep()
+        self.play_state: PlayState = Matchmaking()
         self.teams: dict[Team: TeamData] = {
             Team.BLUE: TeamData(),
             Team.RED: TeamData()
@@ -183,11 +183,15 @@ class Game:
             raise GameSetupError('Both teams need a spymaster and at least one agent')
 
         match self.play_state:
-            case Prep() | Win():
+            case Matchmaking() | Win():
                 self.cards = cards
                 self.next_state(SpymasterTurn(first_team))
             case _:
                 raise GameSetupError('Game in progress')
+
+    def reset(self):
+        self.cards = []
+        self.next_state(MatchMaking())
 
     def give_hint(self, client: str, hint: str, count: int):
         match self.play_state:
