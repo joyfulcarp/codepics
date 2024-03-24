@@ -24,16 +24,21 @@ interface GameUpdate {
 export class GameEvents {
   socket: io
   game: Ref<GameState>
+  is_host: Ref<boolean>
+  debug_mode: boolean
 
-  constructor(url: string, game: Ref<GameState>) {
+  constructor(url: string, game: Ref<GameState>, is_host: Ref<boolean>) {
     this.socket = io(url)
     this.game = game
+    this.is_host = is_host
+    this.debug_mode = import.meta.env.DEV
 
     this.registerDebugEvents()
     this.registerEvents()
   }
 
   registerDebugEvents() {
+    if (!this.debug_mode) return;
     this.socket.onAny((eventName, ...args) => {
       console.log(eventName)
       console.log(args)
@@ -44,9 +49,18 @@ export class GameEvents {
     })
   }
 
+  debug_fill(gameId: number) {
+    this.socket.emit('debug_fill_game', {'game_id': gameId})
+  }
+
+  debug_leave_all() {
+    this.socket.emit('debug_leave_all', {})
+  }
+
   registerEvents() {
-    this.socket.on("update_game", (data) => this.updateGame(data))
-    this.socket.on("update_teams",  (data) => this.updateTeams(data))
+    this.socket.on('update_game', (data) => this.updateGame(data))
+    this.socket.on('update_teams',  (data) => this.updateTeams(data))
+    this.socket.on('who_is_host',  (data) => this.updateHost(data))
   }
 
   join(gameId: number, name: string) {
@@ -60,7 +74,7 @@ export class GameEvents {
     this.socket.emit('leave', {'game_id': gameId})
   }
 
-  joinTeam(gameId: number, team: string, as_spymaster: boolean = false) {
+  joinTeam(gameId: number, team: string, as_spymaster: boolean) {
     this.socket.emit('switch_team', {
       'game_id': gameId,
       'team': team,
@@ -78,5 +92,9 @@ export class GameEvents {
 
   updateTeams(data: GameUpdate)  {
     this.game.value.teams = data.game.teams
+  }
+
+  updateHost(data) {
+    this.is_host.value = data.is_host;
   }
 }

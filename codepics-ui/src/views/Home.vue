@@ -26,32 +26,21 @@
 </template>
 
 <script setup>
-import axios from 'axios'
-
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { getGames, postCreateGame } from '@/assets/ts/query.ts'
+
 const router = useRouter()
 const games = ref([])
+getGames()
+  .then((res) => { games.value = res.data.games })
+  .catch(console.error)
 
-function pollGame() {
-  const path = 'http://localhost:5001/games'
-  axios
-    .get(path)
-    .then((res) => {
-      games.value = res.data.games
-    })
-    .catch((err) => {
-      console.error(err)
-    })
+function createGame() {
+  postCreateGame()
+    .then((res) => router.push(`/lobby/${res.data.game_id}`))
+    .catch(console.error)
 }
-pollGame()
 
-function createGame(event) {
-  const path = 'http://localhost:5001/create_game'
-  axios.post(path)
-    .then((res) => {
-      router.push(`/lobby/${res.data.game_id}`)
-    })
-}
 </script>

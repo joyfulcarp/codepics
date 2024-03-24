@@ -10,7 +10,7 @@ from game import (
 )
 from images import find_images
 
-from flask_socketio import (emit, join_room, leave_room)
+from flask_socketio import (emit, join_room, leave_room, close_room)
 
 from typing import TypeAlias
 
@@ -74,27 +74,31 @@ def check_schema(schema: Schema):
 
 
 class Cafe:
-    def __init__(self, debug = False):
+    def __init__(self, debug: bool):
         self.games: dict[int: Game] = {}
         self.client_to_games: dict[str: list[int]] = {}
         self.id_counter = 0
         self.images = find_images('./static/cards')
+        self.debug = debug
+        self.debug_clients = {}
+        self.debug_game_info = {}
 
         if debug:
             self.id_counter += 1
-            game = Game(0)
-            game.join_game('test_client_0', 'fake_user_0')
-            game.join_game('test_client_1', 'fake_user_1')
-            game.join_game('test_client_2', 'fake_user_2')
-            game.join_game('test_client_3', 'fake_user_3')
-            game.join_team('test_client_0', 'blue', True)
-            game.join_team('test_client_1', 'blue', False)
-            game.join_team('test_client_2', 'red', True)
-            game.join_team('test_client_3', 'red', False)
-            self.games[0] = game
+            self.debug_clients = {
+                'test0': 'Kafka',
+                'test1': 'Blade',
+                'test2': 'David',
+                'test3': 'Smith'
+            }
 
     def list_games(self):
         return {'games': [lobby_info(g) for g in self.games.values()]}
+
+    def list_card_collections(self):
+        names = [c for c in self.images.keys()]
+        names.sort()
+        return {'collections': names }
 
     def reserve_lobby(self):
         game_id = self.id_counter
@@ -104,6 +108,7 @@ class Cafe:
     def build_update_template(self, game: Game):
         return {'game': game_info(game)}
 
+    @check_schema({'game_id': int, 'name': str})
     def create_or_join_game(self, client: str, data):
         game_id = data['game_id']
         name = data['name']
@@ -113,7 +118,8 @@ class Cafe:
             return
 
         if game_id not in self.games:
-            self.games[game_id] = Game(game_id)
+            game = Game(game_id)
+            self.games[game_id] = game
 
         game = self.games[game_id]
         game.join_game(client, name)
@@ -123,10 +129,12 @@ class Cafe:
         else:
             self.client_to_games[client].add(game_id)
 
-        join_room(room(game_id))
+        if client not in self.debug_clients:
+            join_room(room(game_id))
 
         response = self.build_update_template(game)
         emit('update_game', response, to=room(game_id))
+        broadcast_host(game)
 
     def on_user_disconnect(self, client: str):
         if client not in self.client_to_games:
@@ -135,13 +143,16 @@ class Cafe:
         for game_id in self.client_to_games[client]:
             game = self.games[game_id]
             game.leave_game(client)
-            leave_room(room(game_id))
+
+            if client not in self.debug_clients:
+                leave_room(room(game_id))
 
             response = self.build_update_template(game)
             emit('update_game', response, to=room(game_id))
 
             if game.num_players() == 0:
                 del self.games[game_id]
+                close_room(room(game_id))
         del self.client_to_games[client]
 
     @check_schema({'game_id': int, 'team': str, 'as_spymaster': bool})
@@ -217,9 +228,49 @@ class Cafe:
         response = self.build_update_template(game)
         emit('update_card', response, to=room(game_id))
 
+    @check_schema({'game_id': int})
+    def debug_fill_game(self, _, data):
+        gid = data['game_id']
+        game = self.games[gid]
+
+        if gid in self.debug_game_info:
+            return
+
+        debug_info = self.debug_game_info.get(gid, {})
+        cmds = [
+            ('blue', game.teams[Team.BLUE].spymaster is None),
+            ('blue', False),
+            ('red', game.teams[Team.RED].spymaster is None),
+            ('red', False)
+        ]
+
+        for i, (client, name) in enumerate(self.debug_clients.items()):
+            self.create_or_join_game(client, {'game_id': gid, 'name': name})
+
+            team, spymaster = cmds[i]
+            self.on_switch_team(client, {'game_id': gid, 'team': team, 'as_spymaster': spymaster})
+
+            if spymaster:
+                debug_info[f'{team}_spymaster'] = client
+            else:
+                if team in debug_info:
+                    debug_info[team].add(client)
+                else:
+                    debug_info[team] = set({client})
+
+    def debug_leave_all(self):
+        for client, name in self.debug_clients.items():
+            self.on_user_disconnect(client)
+        self.debug_game_info = {}
+
 
 def room(game_id: int):
     return f'game_{game_id}'
+
+
+def broadcast_host(game: Game):
+    for client in game.client_to_name.keys():
+        emit('who_is_host', {'is_host': game.host == client}, to=client)
 
 
 def validate(schema: Schema, data) -> Schema:

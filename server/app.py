@@ -31,6 +31,11 @@ def games():
     return jsonify(cafe.list_games())
 
 
+@app.route('/card_collections', methods=['GET'])
+def card_collections():
+    return jsonify(cafe.list_card_collections())
+
+
 @app.route('/create_game', methods=['POST'])
 def create_game():
     game_id = cafe.reserve_lobby()
@@ -89,6 +94,18 @@ def on_vote(data):
 @socketio.on('reveal_card')
 def on_reveal_card(data):
     cafe.on_reveal_card(request.sid, data)
+
+
+@socketio.on('debug_fill_game')
+def on_debug_fill_game(data):
+    if app.debug:
+        cafe.debug_fill_game(request.sid, data)
+
+
+@socketio.on('debug_leave_all')
+def on_debug_leave_all(data):
+    if app.debug:
+        cafe.debug_leave_all()
 
 
 def main():

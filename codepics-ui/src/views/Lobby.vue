@@ -1,15 +1,10 @@
 <template>
-  <div v-if="gameId != null">
-    <div>
-      Choose a name: <input v-model="new_name" placeholder="Enter your name" />
-      <button @click="updateName()">Play</button>
-    </div>
-    <div>
-      <Game :name="name" :game-id="gameId" />
-    </div>
+  <div>
+    Choose a name: <input v-model="new_name" placeholder="Enter your name" />
+    <button @click="updateName()">Play</button>
   </div>
-  <div v-else>
-    <h1>Invalid game ID</h1>
+  <div>
+    <Game :name="name" :game-id="gameId" />
   </div>
 </template>
 

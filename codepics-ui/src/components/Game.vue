@@ -4,17 +4,31 @@
       :team="blue"
       :info="game.teams[blue]"
       :cards="blue_cards"
-      @join-team="events.joinTeam(props.gameId, blue)"
-      @join-spymaster="events.joinTeam(props.gameId, blue, True)" />
+      @join-team="events.joinTeam(props.gameId, blue, false)"
+      @join-spymaster="events.joinTeam(props.gameId, blue, true)" />
     <Team
       :team="red"
       :info="game.teams[red]"
       :cards="red_cards"
-      @join-team="events.joinTeam(props.gameId, red)"
-      @join-spymaster="events.joinTeam(props.gameId, red, True)" />
-    <div>
+      @join-team="events.joinTeam(props.gameId, red, false)"
+      @join-spymaster="events.joinTeam(props.gameId, red, true)" />
+
+    <div v-if="is_host">
+      <label for="card_packs">Choose card pack:</label>
+      <select name="card_packs" id="card_packs">
+        <option v-for="pack in cardPacks" :value="pack">{{ pack }}</option>
+      </select>
       <button @click="events.startGame(props.gameId)">Start Game</button>
     </div>
+
+    <div v-show="is_debug">
+      <h2>Debug</h2>
+      <button @click="events.debug_fill(props.gameId)">Fill Game</button>
+      <button @click="events.debug_leave_all()">Leave All</button>
+    </div>
+  </div>
+  <div v-else>
+    <p>Invalid game ID</p>
   </div>
 </template>
 
@@ -23,6 +37,7 @@ import Team from '@/components/Team.vue'
 
 import type { GameState } from '@/assets/ts/game.ts'
 import { GameEvents } from '@/assets/ts/game.ts'
+import { getUrl, getCardCollections } from '@/assets/ts/query.ts'
 
 import {
   computed,
@@ -37,8 +52,16 @@ const props = defineProps({
   gameId: Number
 })
 
+const is_debug = import.meta.env.DEV
+
 const game: GameState = ref(null)
-const events = new GameEvents('http://localhost:5001', game)
+const is_host = ref(false)
+const events = new GameEvents(getUrl(), game, is_host)
+
+const cardPacks = ref([])
+getCardCollections()
+  .then((res) => { cardPacks.value = res.data.collections })
+  .catch(console.error)
 
 const blue = 'blue'
 const red = 'red'
