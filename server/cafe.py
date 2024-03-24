@@ -1,7 +1,9 @@
 from game import (
+    AgentTurn,
     Card,
     Game,
     Matchmaking,
+    SpymasterTurn,
     Team,
     TeamData,
 
@@ -236,7 +238,8 @@ class Cafe:
         if gid in self.debug_game_info:
             return
 
-        debug_info = self.debug_game_info.get(gid, {})
+        self.debug_game_info[gid] = {}
+        debug_info = self.debug_game_info[gid]
         cmds = [
             ('blue', game.teams[Team.BLUE].spymaster is None),
             ('blue', False),
@@ -253,15 +256,56 @@ class Cafe:
             if spymaster:
                 debug_info[f'{team}_spymaster'] = client
             else:
+                role = f'{team}_agents'
                 if team in debug_info:
-                    debug_info[team].add(client)
+                    debug_info[role].add(client)
                 else:
-                    debug_info[team] = set({client})
+                    debug_info[role] = set({client})
 
     def debug_leave_all(self):
         for client, name in self.debug_clients.items():
             self.on_user_disconnect(client)
         self.debug_game_info = {}
+
+    @check_schema({'game_id': int, 'hint': str, 'count': int})
+    def debug_give_hint(self, _, data):
+        gid = data['game_id']
+        if gid not in self.debug_game_info:
+            return
+
+        client = self._debug_client(gid)
+        self.on_give_hint(client, data)
+
+    @check_schema({'game_id': int, 'card': int})
+    def debug_vote(self, _, data):
+        gid = data['game_id']
+        if gid not in self.debug_game_info:
+            return
+
+        client = self._debug_client(gid)
+        self.on_vote(client, data)
+
+    @check_schema({'game_id': int, 'card': int})
+    def debug_reveal_card(self, _, data):
+        gid = data['game_id']
+        if gid not in self.debug_game_info:
+            return
+
+        client = self._debug_client(gid)
+        self.on_reveal_card(client, data)
+
+    def _debug_client(self, gid: int) -> str:
+        state = self.games[gid].play_state
+        role = ''
+        match state:
+            case SpymasterTurn():
+                role = str(state)
+                return self.debug_game_info[gid][role]
+            case AgentTurn():
+                role = str(state)
+                return next(iter(self.debug_game_info[gid][role]))
+            case _:
+                return None
 
 
 def room(game_id: int):

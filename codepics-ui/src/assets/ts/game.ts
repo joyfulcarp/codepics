@@ -57,6 +57,14 @@ export class GameEvents {
     this.socket.emit('debug_leave_all', {})
   }
 
+  debug_give_hint(gameId: number, hint: string, count: number) {
+    this.socket.emit('debug_give_hint', {
+      'game_id': gameId,
+      'hint': hint,
+      'count': count
+    })
+  }
+
   registerEvents() {
     this.socket.on('update_game', (data) => this.updateGame(data))
     this.socket.on('update_teams',  (data) => this.updateTeams(data))

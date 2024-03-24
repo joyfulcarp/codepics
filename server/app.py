@@ -108,6 +108,24 @@ def on_debug_leave_all(data):
         cafe.debug_leave_all()
 
 
+@socketio.on('debug_give_hint')
+def on_debug_give_hint(data):
+    if app.debug:
+        cafe.debug_give_hint(request.sid, data)
+
+
+@socketio.on('debug_vote')
+def on_debug_vote(data):
+    if app.debug:
+        cafe.debug_vote(request.sid, data)
+
+
+@socketio.on('debug_reveal_card')
+def on_debug_reveal_card(data):
+    if app.debug:
+        cafe.debug_reveal_card(request.sid, data)
+
+
 def main():
     socketio.run()
 

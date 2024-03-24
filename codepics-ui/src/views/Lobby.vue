@@ -1,6 +1,7 @@
 <template>
   <div>
-    Choose a name: <input v-model="new_name" placeholder="Enter your name" />
+    <label for="player_name">Choose a name:</label>
+    <input id="player_name" v-model="new_name" placeholder="Enter your name" />
     <button @click="updateName()">Play</button>
   </div>
   <div>
