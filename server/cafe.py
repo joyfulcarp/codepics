@@ -185,10 +185,13 @@ class Cafe:
         first_team = random_first_team()
         cards = generate_cards(first_team, images)
 
-        game.start_game(first_team, cards)
+        try:
+            game.start_game(first_team, cards)
 
-        response = self.build_update_template(game)
-        emit('new_turn', response, to=room(game_id))
+            response = self.build_update_template(game)
+            emit('update_game', response, to=room(game_id))
+        except GameSetupError as e:
+            emit('error', str(e))
 
     @check_schema({'game_id': int})
     def on_reset_game(self, client: str, data):
@@ -205,30 +208,39 @@ class Cafe:
         game_id = data['game_id']
         game = self.games[game_id]
 
-        game.give_hint(client, data['hint'], data['count'])
+        try:
+            game.give_hint(client, data['hint'], data['count'])
 
-        response = self.build_update_template(game)
-        emit('new_turn', response, to=room(game_id))
+            response = self.build_update_template(game)
+            emit('new_turn', response, to=room(game_id))
+        except (ActionError, TurnError) as e:
+            emit('error', str(e))
 
     @check_schema({'game_id': int, 'card': int})
     def on_vote(self, client: str, data):
         game_id = data['game_id']
         game = self.games[game_id]
 
-        game.vote(client, data['card'])
+        try:
+            game.vote(client, data['card'])
 
-        response = self.build_update_template(game)
-        emit('update_vote', response, to=room(game_id))
+            response = self.build_update_template(game)
+            emit('update_vote', response, to=room(game_id))
+        except (ActionError, TurnError) as e:
+            emit('error', str(e))
 
     @check_schema({'game_id': int, 'card': int})
     def on_reveal_card(self, client: str, data):
         game_id = data['game_id']
         game = self.games[game_id]
 
-        game.reveal_card(client, data['card'])
+        try:
+            game.reveal_card(client, data['card'])
 
-        response = self.build_update_template(game)
-        emit('update_card', response, to=room(game_id))
+            response = self.build_update_template(game)
+            emit('update_card', response, to=room(game_id))
+        except (ActionError, TurnError) as e:
+            emit('error', str(e))
 
     @check_schema({'game_id': int})
     def debug_fill_game(self, _, data):

@@ -152,7 +152,7 @@ class Game:
         self.leave_teams(client)
 
         join_team.members.add(client)
-        if as_spymaster:
+        if as_spymaster and join_team.spymaster is None:
             join_team.spymaster = client
 
     def leave_teams(self, client: str):
