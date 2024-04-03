@@ -34,7 +34,7 @@ def player_info(player: str, game: Game, client: str):
 
 
 def team_info(data: TeamData, game: Game, client: str):
-    agents = [player_info(a, game, client) for a in data.members]
+    agents = [player_info(a, game, client) for a in data.members if a != data.spymaster]
     spymaster = player_info(data.spymaster, game, client) if data.spymaster else None
     return {
         'agents': agents,
