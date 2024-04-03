@@ -3,22 +3,21 @@
     <Team
       :team="blue"
       :info="game.teams[blue]"
-      :cards="blue_cards"
       @join-team="events.joinTeam(props.gameId, blue, false)"
       @join-spymaster="events.joinTeam(props.gameId, blue, true)" />
     <Team
       :team="red"
       :info="game.teams[red]"
-      :cards="red_cards"
       @join-team="events.joinTeam(props.gameId, red, false)"
       @join-spymaster="events.joinTeam(props.gameId, red, true)" />
 
-    <div v-if="is_host">
-      <label for="card_packs">Choose card pack:</label>
-      <select id="card_packs">
-        <option v-for="pack in cardPacks" :value="pack">{{ pack }}</option>
-      </select>
-      <button @click="events.startGame(props.gameId)">Start Game</button>
+    <div v-if="isGameInProgress">
+    </div>
+    <div v-else>
+      <Host
+        v-if="showHostSetup"
+        :events="events"
+        :gameId="props.gameId" />
     </div>
 
     <div v-show="is_debug">
@@ -40,11 +39,12 @@
 </template>
 
 <script setup lang="ts">
+import Host from '@/components/Host.vue'
 import Team from '@/components/Team.vue'
 
 import type { GameState } from '@/assets/ts/game.ts'
 import { GameEvents } from '@/assets/ts/game.ts'
-import { getUrl, getCardCollections } from '@/assets/ts/query.ts'
+import { getUrl } from '@/assets/ts/query.ts'
 
 import {
   computed,
@@ -63,13 +63,8 @@ const is_debug = import.meta.env.DEV
 const debug_info = ref({'hint': '', 'count': 0})
 
 const game: GameState = ref(null)
-const is_host = ref(false)
-const events = new GameEvents(getUrl(), game, is_host)
-
-const cardPacks = ref([])
-getCardCollections()
-  .then((res) => { cardPacks.value = res.data.collections })
-  .catch(console.error)
+const isHost = ref(false)
+const events = new GameEvents(getUrl(), game, isHost)
 
 const blue = 'blue'
 const red = 'red'
@@ -86,15 +81,13 @@ watch(() => props.gameId, (newId, oldId) => {
   events.join(newId, props.name)
 })
 
-function countCards(cards, team): string {
-  if (!cards) return '-'
-  else return cards.filter(card => card['team'] == team)
-}
+const showHostSetup = computed(() => {
+  return isHost && game.value.play_state == 'matchmaking'
+})
 
-// const blue_cards = computed(() => countCards(game.value['cards'], 'blue'))
-// const red_cards = '-'
-const blue_cards = '-'
-const red_cards = '-'
+const isGameInProgress = computed(() => {
+  return game.value.play_state != 'matchmaking'
+})
 
 onUnmounted(() => {
   if (props.gameId != null) {
