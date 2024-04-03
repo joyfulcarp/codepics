@@ -7,6 +7,10 @@ from game import (
     Team,
     TeamData,
 
+    ActionError,
+    GameSetupError,
+    TurnError,
+
     random_first_team,
     generate_cards,
 )
@@ -33,19 +37,25 @@ def player_info(player: str, game: Game, client: str):
     }
 
 
-def team_info(data: TeamData, game: Game, client: str):
+def team_info(team: Team, game: Game, client: str):
+    data = game.teams[team]
     agents = [player_info(a, game, client) for a in data.members if a != data.spymaster]
     spymaster = player_info(data.spymaster, game, client) if data.spymaster else None
+    cards_left = '-'
+    if len(game.cards) > 0:
+        cards_left = sum(1 for c in game.cards if c.team == team and c.hidden)
+
     return {
         'agents': agents,
-        'spymaster': spymaster
+        'spymaster': spymaster,
+        'cards_left': cards_left
     }
 
 
 def all_team_info(game: Game, client: str):
     return {
-        'blue': team_info(game.teams[Team.BLUE], game, client),
-        'red': team_info(game.teams[Team.RED], game, client)
+        'blue': team_info(Team.BLUE, game, client),
+        'red': team_info(Team.RED, game, client)
     }
 
 
