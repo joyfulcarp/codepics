@@ -12,12 +12,18 @@
       @join-spymaster="events.joinTeam(props.gameId, red, true)" />
 
     <div v-if="isGameInProgress">
+      <Cards
+        :events="events"
+        :base-url="imgUrl"
+        :collection="game.collection"
+        :game-id="props.gameId"
+        :cards="game.cards" />
     </div>
     <div v-else>
       <Host
         v-if="showHostSetup"
         :events="events"
-        :gameId="props.gameId" />
+        :game-id="props.gameId" />
     </div>
 
     <div v-show="is_debug">
@@ -39,6 +45,7 @@
 </template>
 
 <script setup lang="ts">
+import Cards from '@/components/Cards.vue'
 import Host from '@/components/Host.vue'
 import Team from '@/components/Team.vue'
 
@@ -64,7 +71,10 @@ const debug_info = ref({'hint': '', 'count': 0})
 
 const game: GameState = ref(null)
 const isHost = ref(false)
-const events = new GameEvents(getUrl(), game, isHost)
+
+const url = getUrl()
+const imgUrl = url + 'static/cards/'
+const events = new GameEvents(url, game, isHost)
 
 const blue = 'blue'
 const red = 'red'

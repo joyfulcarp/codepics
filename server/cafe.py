@@ -78,7 +78,8 @@ def game_info(game: Game, client: str):
         'id': game.game_id,
         'play_state': str(game.play_state),
         'teams': all_team_info(game, client),
-        'cards': [card_info(c, True) for c in game.cards]
+        'cards': [card_info(c, True) for c in game.cards],
+        'collection': game.card_collection
     }
 
 
@@ -226,7 +227,7 @@ class Cafe:
             game.give_hint(client, data['hint'], data['count'])
 
             self.send_update(game, 'new_turn', {})
-        except (ActionError, TurnError) as e:
+        except (GameSetupError, ActionError, TurnError) as e:
             emit('error', str(e))
 
     @check_schema({'game_id': int, 'card': int})
@@ -239,7 +240,7 @@ class Cafe:
 
 
             self.send_update(game, 'update_vote', {})
-        except (ActionError, TurnError) as e:
+        except (GameSetupError, ActionError, TurnError) as e:
             emit('error', str(e))
 
     @check_schema({'game_id': int, 'card': int})
@@ -253,7 +254,7 @@ class Cafe:
             self.send_update(game, 'update_card', {
                 'chosen_card': data['card']
             })
-        except (ActionError, TurnError) as e:
+        except (GameSetupError, ActionError, TurnError) as e:
             emit('error', str(e))
 
     def send_update(self, game: Game, event: str, payload: dict):

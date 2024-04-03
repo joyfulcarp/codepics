@@ -94,6 +94,20 @@ export class GameEvents {
     this.socket.emit('start_game', {'game_id': gameId})
   }
 
+  vote(gameId: number, card: number) {
+    this.socket.emit('vote', {
+      'game_id': gameId,
+      'card': card
+    })
+  }
+
+  reveal(gameId: number, card: number) {
+    this.socket.emit('reveal_card', {
+      'game_id': gameId,
+      'card': card
+    })
+  }
+
   updateGame(data: GameUpdate) {
     this.game.value = data.game
   }
