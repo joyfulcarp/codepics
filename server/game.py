@@ -113,6 +113,14 @@ class Game:
         else:
             raise GameSetupError('Player not in game')
 
+    def is_spymaster(self, client: str) -> bool:
+        if client == self.teams[Team.BLUE].spymaster:
+            return True
+        elif client == self.teams[Team.RED].spymaster:
+            return True
+        else:
+            return False
+
     def teams_ready(self) -> bool:
         return self.teams[Team.BLUE].ready() and self.teams[Team.RED].ready()
 

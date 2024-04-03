@@ -26,37 +26,49 @@ def lobby_info(game: Game):
     }
 
 
-def team_info(data: TeamData, game: Game):
-    agents = [game.client_to_name[a] for a in data.members]
-    agents.sort()
-    spymaster = game.client_to_name[data.spymaster] if data.spymaster else None
+def player_info(player: str, game: Game, client: str):
+    return {
+        'name': game.client_to_name[player],
+        'is_self': player == client
+    }
+
+
+def team_info(data: TeamData, game: Game, client: str):
+    agents = [player_info(a, game, client) for a in data.members]
+    spymaster = player_info(data.spymaster, game, client) if data.spymaster else None
     return {
         'agents': agents,
         'spymaster': spymaster
     }
 
 
-def all_team_info(game: Game):
+def all_team_info(game: Game, client: str):
     return {
-        'blue': team_info(game.teams[Team.BLUE], game),
-        'red': team_info(game.teams[Team.RED], game)
+        'blue': team_info(game.teams[Team.BLUE], game, client),
+        'red': team_info(game.teams[Team.RED], game, client)
     }
 
 
-def card_info(card: Card):
+def card_info(card: Card, hide: bool):
     return {
-        'team': card.team,
+        'team': None if hide and card.hidden else card.team,
         'asset': card.asset,
         'hidden': card.hidden
     }
 
 
-def game_info(game: Game):
+def spymaster_card_info(game: Game):
+    return {
+        'cards': [card_info(c, False) for c in game.cards]
+    }
+
+
+def game_info(game: Game, client: str):
     return {
         'id': game.game_id,
         'play_state': str(game.play_state),
-        'teams': all_team_info(game),
-        'cards': [card_info(c) for c in game.cards]
+        'teams': all_team_info(game, client),
+        'cards': [card_info(c, True) for c in game.cards]
     }
 
 
@@ -107,9 +119,6 @@ class Cafe:
         self.id_counter += 1
         return game_id
 
-    def build_update_template(self, game: Game):
-        return {'game': game_info(game)}
-
     @check_schema({'game_id': int, 'name': str})
     def create_or_join_game(self, client: str, data):
         game_id = data['game_id']
@@ -134,8 +143,7 @@ class Cafe:
         if client not in self.debug_clients:
             join_room(room(game_id))
 
-        response = self.build_update_template(game)
-        emit('update_game', response, to=room(game_id))
+        self.send_update(game, 'update_game', {})
         broadcast_host(game)
 
     def on_user_disconnect(self, client: str):
@@ -149,8 +157,7 @@ class Cafe:
             if client not in self.debug_clients:
                 leave_room(room(game_id))
 
-            response = self.build_update_template(game)
-            emit('update_game', response, to=room(game_id))
+            self.send_update(game, 'update_game', {})
 
             if game.num_players() == 0:
                 del self.games[game_id]
@@ -166,8 +173,7 @@ class Cafe:
         game = self.games[game_id]
         game.join_team(client, team, as_spymaster)
 
-        response = self.build_update_template(game)
-        emit('update_teams', response, to=room(game_id))
+        self.send_update(game, 'update_teams', {});
 
     @check_schema({'game_id': int, 'collection': str})
     def on_switch_collection(self, client: str, data):
@@ -188,8 +194,7 @@ class Cafe:
         try:
             game.start_game(first_team, cards)
 
-            response = self.build_update_template(game)
-            emit('update_game', response, to=room(game_id))
+            self.send_update(game, 'update_game', {})
         except GameSetupError as e:
             emit('error', str(e))
 
@@ -200,8 +205,7 @@ class Cafe:
 
         game.reset()
 
-        response = self.build_update_template(game)
-        emit('update_game', response, to=room(game_id))
+        self.send_update(game, 'update_game', {})
 
     @check_schema({'game_id': int, 'hint': str, 'count': int})
     def on_give_hint(self, client: str, data):
@@ -211,8 +215,7 @@ class Cafe:
         try:
             game.give_hint(client, data['hint'], data['count'])
 
-            response = self.build_update_template(game)
-            emit('new_turn', response, to=room(game_id))
+            self.send_update(game, 'new_turn', {})
         except (ActionError, TurnError) as e:
             emit('error', str(e))
 
@@ -224,8 +227,8 @@ class Cafe:
         try:
             game.vote(client, data['card'])
 
-            response = self.build_update_template(game)
-            emit('update_vote', response, to=room(game_id))
+
+            self.send_update(game, 'update_vote', {})
         except (ActionError, TurnError) as e:
             emit('error', str(e))
 
@@ -237,10 +240,19 @@ class Cafe:
         try:
             game.reveal_card(client, data['card'])
 
-            response = self.build_update_template(game)
-            emit('update_card', response, to=room(game_id))
+            self.send_update(game, 'update_card', {
+                'chosen_card': data['card']
+            })
         except (ActionError, TurnError) as e:
             emit('error', str(e))
+
+    def send_update(self, game: Game, event: str, payload: dict):
+        for client in game.client_to_name:
+            response = {'game': game_info(game, client) }
+            if game.is_spymaster(client):
+                response['spymaster_vision'] = spymaster_card_info(game)
+            response = payload | response
+            emit(event, response, to=client)
 
     @check_schema({'game_id': int})
     def debug_fill_game(self, _, data):
