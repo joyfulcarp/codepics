@@ -69,9 +69,9 @@ p {
 .info {
   padding: 10px;
   display: grid;
-  grid-template-rows: min-content 30px 30px 1fr;
+  grid-template-rows: min-content 30px 30px min-content;
   grid-template-columns: min-content 1fr;
-  gap: 10px;
+  gap: 5px 10px;
   align-items: center;
   min-width: 0;
   min-height: 0;
@@ -79,20 +79,20 @@ p {
 }
 
 .card-count {
-  grid-row: 1;
-  grid-column: 1 / span 2;
+  grid-row: 1 / span 2;
+  grid-column: 1;
   min-width: 0;
   min-height: 0;
+  justify-self: center;
   font-weight: bold;
   font-size: 3em;
   color: white;
   text-shadow: black 1px 0 20px;
-  margin-left: 20px;
 }
 
 .spymaster-text {
-  grid-row: 2;
-  grid-column: 1;
+  grid-row: 1;
+  grid-column: 2;
   min-width: 0;
   min-height: 0;
 }
@@ -102,6 +102,10 @@ p {
   grid-column: 2;
   min-width: 0;
   min-height: 0;
+}
+
+.spymaster-info * {
+  width: 100%
 }
 
 .agents-text {
@@ -123,7 +127,7 @@ p {
   grid-column: 1 / span 2;
   align-self: start;
   min-width: 0;
-  min-height: 0;
+  height: 2em;
   overflow: auto;
   display: flex;
   flex-wrap: wrap;
