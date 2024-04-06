@@ -86,6 +86,8 @@ p {
   font-weight: bold;
   font-size: 3em;
   color: white;
+  text-shadow: black 1px 0 20px;
+  margin-left: 20px;
 }
 
 .spymaster-text {

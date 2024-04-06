@@ -1,7 +1,10 @@
 <template>
-  <div class="board">
+  <div class="board" @mouseleave="$emit('leaveImage')">
     <template v-for="(card, index) in props.cards" :key="index">
-      <div class="card" :id="`card-${index}`">
+      <div
+          class="card"
+          :id="`card-${index}`"
+          @mouseover="$emit('previewImage', imgs[index])">
         <img class="image" :src="imgs[index]" />
         <button class="vote button" @click="events.vote(props.gameId, index)">Vote</button>
         <button class="reveal alt-button" @click="events.reveal(props.gameId, index)">Reveal</button>
@@ -14,6 +17,8 @@
 import { GameEvents } from '@/assets/ts/game.ts'
 
 import { computed } from 'vue'
+
+defineEmits(['previewImage', 'leaveImage'])
 
 const props = defineProps({
   events: GameEvents,
@@ -60,6 +65,7 @@ const imgs = computed(() => {
   min-height: 0;
   width: 100%;
   height: 100%;
+  object-fit: contain;
 }
 
 .vote {

@@ -1,9 +1,10 @@
 <template>
   <div v-if="game != null">
     <div class="ui">
-      <div class="preview">
-        <p>Hover over an image to preview</p>
-        <img />
+      <div class="game-info">
+        <div class="game-info-container">
+          <img class="preview-image" :src="previewImgSrc" />
+        </div>
       </div>
       <Team
         :team="blue"
@@ -25,7 +26,9 @@
             :base-url="imgUrl"
             :collection="game.collection"
             :game-id="props.gameId"
-            :cards="game.cards" />
+            :cards="game.cards"
+            @preview-image="previewImage"
+            @leave-image="leaveImage" />
         </div>
         <div v-else>
           <Host
@@ -81,6 +84,7 @@ const debug_info = ref({'hint': '', 'count': 0})
 
 const game: GameState = ref(null)
 const isHost = ref(false)
+const previewImgSrc = ref('')
 
 const url = getUrl()
 const imgUrl = url + 'static/cards/'
@@ -114,27 +118,62 @@ onUnmounted(() => {
     events.leave(props.gameId)
   }
 })
+
+function previewImage(url: String) {
+  previewImgSrc.value = url
+}
+
+function leaveImage() {
+  previewImgSrc.value = ''
+}
 </script>
 
 <style scoped>
 .ui {
   display: grid;
-  grid-template-rows: 2fr 1fr;
+  grid-template-rows: 1fr 2fr;
   grid-template-columns: 1fr 1fr 3fr;
+  gap: 10px;
+  min-width: 0;
+  min-height: 0;
 }
 
-.preview {
-  grid-row: 1;
+.game-info {
+  grid-row: 2;
   grid-column: 1 / span 2;
+  min-width: 0;
+  min-height: 0;
+  contain: size;
+}
+
+.game-info-container {
+  display: grid;
+  grid-template-rows: 1fr;
+  grid-template-columns: 1fr;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  contain: size;
+}
+
+.preview-image {
+  grid-row: 1;
+  grid-column: 1;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .blue-team-info {
-  grid-row: 2;
+  grid-row: 1;
   grid-column: 1;
 }
 
 .red-team-info {
-  grid-row: 2;
+  grid-row: 1;
   grid-column: 2;
 }
 
