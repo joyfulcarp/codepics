@@ -1,16 +1,18 @@
 <template>
-  <div>{{ info['cards_left'] }}</div>
   <div>
-    <h2>Agents</h2>
-    <span v-for="player in agents" class="name" :class="{ 'self-name': player['is_self'] }">{{ player['name'] }}</span>
-  </div>
-  <div>
-    <h2>Spymaster</h2>
-    <span v-if="spymaster" class="name" :class="{ 'self-name': spymaster['is_self'] }">{{ spymaster['name'] }}</span>
-  </div>
-  <div>
-    <button v-if="!isSelfInAgents" @click="$emit('joinTeam')">Join as Agent</button>
-    <button v-if="!spymaster" @click="$emit('joinSpymaster')">Join as Spymaster</button>
+    <div>{{ info['cards_left'] }}</div>
+    <div>
+      <h2>Agents</h2>
+      <span v-for="player in agents" class="name" :class="{ 'self-name': player['is_self'] }">{{ player['name'] }}</span>
+    </div>
+    <div>
+      <h2>Spymaster</h2>
+      <span v-if="spymaster" class="name" :class="{ 'self-name': spymaster['is_self'] }">{{ spymaster['name'] }}</span>
+    </div>
+    <div>
+      <button v-if="!isSelfInAgents" @click="$emit('joinTeam')">Join as Agent</button>
+      <button v-if="!spymaster" @click="$emit('joinSpymaster')">Join as Spymaster</button>
+    </div>
   </div>
 </template>
 

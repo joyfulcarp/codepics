@@ -1,29 +1,39 @@
 <template>
   <div v-if="game != null">
-    <Team
-      :team="blue"
-      :info="game.teams[blue]"
-      @join-team="events.joinTeam(props.gameId, blue, false)"
-      @join-spymaster="events.joinTeam(props.gameId, blue, true)" />
-    <Team
-      :team="red"
-      :info="game.teams[red]"
-      @join-team="events.joinTeam(props.gameId, red, false)"
-      @join-spymaster="events.joinTeam(props.gameId, red, true)" />
+    <div class="ui">
+      <div class="preview">
+        <p>Hover over an image to preview</p>
+        <img />
+      </div>
+      <Team
+        :team="blue"
+        :info="game.teams[blue]"
+        @join-team="events.joinTeam(props.gameId, blue, false)"
+        @join-spymaster="events.joinTeam(props.gameId, blue, true)"
+        class="blue-team-info" />
+      <Team
+        :team="red"
+        :info="game.teams[red]"
+        @join-team="events.joinTeam(props.gameId, red, false)"
+        @join-spymaster="events.joinTeam(props.gameId, red, true)"
+        class="red-team-info" />
 
-    <div v-if="isGameInProgress">
-      <Cards
-        :events="events"
-        :base-url="imgUrl"
-        :collection="game.collection"
-        :game-id="props.gameId"
-        :cards="game.cards" />
-    </div>
-    <div v-else>
-      <Host
-        v-if="showHostSetup"
-        :events="events"
-        :game-id="props.gameId" />
+      <div class="game">
+        <div v-if="isGameInProgress">
+          <Cards
+            :events="events"
+            :base-url="imgUrl"
+            :collection="game.collection"
+            :game-id="props.gameId"
+            :cards="game.cards" />
+        </div>
+        <div v-else>
+          <Host
+            v-if="showHostSetup"
+            :events="events"
+            :game-id="props.gameId" />
+        </div>
+      </div>
     </div>
 
     <div v-show="is_debug">
@@ -105,3 +115,33 @@ onUnmounted(() => {
   }
 })
 </script>
+
+<style scoped>
+.ui {
+  display: grid;
+  grid-template-rows: 2fr 1fr;
+  grid-template-columns: 1fr 1fr 3fr;
+}
+
+.preview {
+  grid-row: 1;
+  grid-column: 1 / span 2;
+}
+
+.blue-team-info {
+  grid-row: 2;
+  grid-column: 1;
+}
+
+.red-team-info {
+  grid-row: 2;
+  grid-column: 2;
+}
+
+.game {
+  grid-row: 1 / span 2;
+  grid-column: 3;
+  min-width: 0;
+  min-height: 0;
+}
+</style>
