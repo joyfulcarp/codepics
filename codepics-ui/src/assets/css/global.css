@@ -1,0 +1,27 @@
+html, body, button {
+  font-family: 'Roboto', sans-serif;
+}
+
+.button {
+  background-color: #ffe400;
+  border-color: #f3bb00;
+  border-radius: 10px;
+  padding: 5px;
+}
+
+.button:hover {
+  background-color: #ffd300;
+  transition: 0.5s;
+}
+
+.alt-button {
+  background-color: #6ae911;
+  border-color: #5fa313;
+  border-radius: 10px;
+  padding: 5px;
+}
+
+.alt-button:hover {
+  background-color: #39db07;
+  transition: 0.5s;
+}

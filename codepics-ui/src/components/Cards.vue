@@ -3,8 +3,8 @@
     <template v-for="(card, index) in props.cards" :key="index">
       <div class="card" :id="`card-${index}`">
         <img class="image" :src="imgs[index]" />
-        <button class="vote" @click="events.vote(props.gameId, index)">Vote</button>
-        <button class="reveal" @click="events.reveal(props.gameId, index)">Reveal</button>
+        <button class="vote button" @click="events.vote(props.gameId, index)">Vote</button>
+        <button class="reveal alt-button" @click="events.reveal(props.gameId, index)">Reveal</button>
       </div>
     </template>
   </div>
@@ -44,7 +44,7 @@ const imgs = computed(() => {
 
 .card {
   display: grid;
-  grid-template-rows: 30px 1fr;
+  grid-template-rows: min-content 1fr;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   place-items: center;
@@ -66,11 +66,13 @@ const imgs = computed(() => {
   z-index: 2;
   grid-row: 1;
   grid-column: 1;
+  margin: 5px;
 }
 
 .reveal {
   z-index: 2;
   grid-row: 1;
   grid-column: 2;
+  margin: 5px;
 }
 </style>
