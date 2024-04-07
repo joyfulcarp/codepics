@@ -3,7 +3,7 @@
     <div class="card-count">{{ info['cards_left'] }}</div>
     <p class="spymaster-text role-text">Spymaster</p>
     <div class="spymaster-info">
-      <span v-if="spymaster" class="name" :class="{ 'self-name': spymaster['is_self'] }">{{ spymaster['name'] }}</span>
+      <p v-if="spymaster" class="name" :class="{ 'self-name': spymaster['is_self'] }">{{ spymaster['name'] }}</p>
       <button class="button" v-if="!spymaster" @click="$emit('joinSpymaster')">Join as Spymaster</button>
     </div>
     <p class="agents-text role-text">Agents</p>
@@ -102,10 +102,13 @@ p {
   grid-column: 2;
   min-width: 0;
   min-height: 0;
+  height: 100%;
 }
 
 .spymaster-info * {
-  width: 100%
+  width: 100%;
+  height: 100%;
+  overflow: auto;
 }
 
 .agents-text {
@@ -127,7 +130,7 @@ p {
   grid-column: 1 / span 2;
   align-self: start;
   min-width: 0;
-  height: 2em;
+  height: 3em;
   overflow: auto;
   display: flex;
   flex-wrap: wrap;

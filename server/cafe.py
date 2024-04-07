@@ -111,10 +111,11 @@ class Cafe:
         if debug:
             self.id_counter += 1
             self.debug_clients = {
-                'test0': 'Kafka',
-                'test1': 'Blade',
-                'test2': 'David',
-                'test3': 'Smith'
+                'test0': 'Kafka De La Rosen, First of Her Name and Whatever Else Comes to Mind',
+                'test1': 'A really really really really really really really really really long name',
+                'test2': 'Blade',
+                'test3': 'David',
+                'test4': 'Smithers has a really long history that is worth investigating over'
             }
 
     def list_games(self):
@@ -279,7 +280,8 @@ class Cafe:
             ('blue', game.teams[Team.BLUE].spymaster is None),
             ('blue', False),
             ('red', game.teams[Team.RED].spymaster is None),
-            ('red', False)
+            ('red', False),
+            ('blue', False),
         ]
 
         for i, (client, name) in enumerate(self.debug_clients.items()):
