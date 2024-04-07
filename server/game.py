@@ -242,8 +242,10 @@ class Game:
         """
         if card not in actions.votes:
             actions.votes[card] = set({client})
-        else:
+        elif client not in actions.votes[card]:
             actions.votes[card].add(client)
+        else:
+            actions.votes[card].remove(client)
 
     @_checked_agent_action
     def reveal_card(self, client: str, card_index: int, curr_team: Team, actions: AgentActions):

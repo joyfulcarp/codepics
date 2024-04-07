@@ -73,13 +73,27 @@ def spymaster_card_info(game: Game):
     }
 
 
+def vote_info(game: Game):
+    match game.play_state:
+        case AgentTurn(team, action):
+            votes = {}
+            for i in action.votes.keys():
+                players = [game.client_to_name[c] for c in action.votes[i]]
+                players.sort()
+                votes[i] = players
+            return votes
+        case _:
+            return {}
+
+
 def game_info(game: Game, client: str):
     return {
         'id': game.game_id,
         'play_state': str(game.play_state),
         'teams': all_team_info(game, client),
         'cards': [card_info(c, True) for c in game.cards],
-        'collection': game.card_collection
+        'collection': game.card_collection,
+        'votes': vote_info(game)
     }
 
 

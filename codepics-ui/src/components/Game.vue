@@ -27,6 +27,8 @@
             :collection="game.collection"
             :game-id="props.gameId"
             :cards="game.cards"
+            :votes="game.votes"
+            :current-team="currentTeam"
             @preview-image="previewImage"
             @leave-image="leaveImage" />
         </div>
@@ -49,6 +51,13 @@
           <option v-for="i in 10">{{ i - 1 }}</option>
         </select>
         <button @click="events.debug_give_hint(props.gameId, debug_info.hint, debug_info.count)">Go</button>
+      </div>
+      <div>
+        <select v-model="debug_info.card">
+          <option v-for="i in 20">{{ i - 1 }}</option>
+        </select>
+        <button @click="events.debug_vote(props.gameId, debug_info.card)">Vote</button>
+        <button @click="events.debug_reveal(props.gameId, debug_info.card)">Reveal</button>
       </div>
     </div>
   </div>
@@ -80,7 +89,7 @@ const props = defineProps({
 })
 
 const is_debug = import.meta.env.DEV
-const debug_info = ref({'hint': '', 'count': 0})
+const debug_info = ref({'hint': 'Test hint', 'count': 0, 'card': 0})
 
 const game: GameState = ref(null)
 const isHost = ref(false)
@@ -111,6 +120,15 @@ const showHostSetup = computed(() => {
 
 const isGameInProgress = computed(() => {
   return game.value.play_state != 'matchmaking'
+})
+
+const currentTeam = computed(() => {
+  if (game.value.play_state == 'red_spymaster' || game.value.play_state == 'red_agents')
+    return 'red'
+  else if (game.value.play_state == 'blue_spymaster' || game.value.play_state == 'blue_agents')
+    return 'blue'
+  else
+    return 'unknown'
 })
 
 onUnmounted(() => {
