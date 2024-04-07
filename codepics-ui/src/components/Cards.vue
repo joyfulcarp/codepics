@@ -139,6 +139,7 @@ const cardTeams = computed(() => {
   flex-wrap: wrap;
   justify-content: flex-start;
   overflow: auto;
+  contain: size;
 }
 
 p {
@@ -153,5 +154,6 @@ p {
   background-color: v-bind('bgColor');
   height: min-content;
   margin-left: 5px;
+  margin-right: 5px;
 }
 </style>

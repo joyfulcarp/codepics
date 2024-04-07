@@ -129,7 +129,7 @@ class Cafe:
                 'test1': 'A really really really really really really really really really long name',
                 'test2': 'Blade',
                 'test3': 'David',
-                'test4': 'Smithers has a really long history that is worth investigating over'
+                'test4': 'Smithers has a really long history that is worth investigating over and it just goes on and on and on and on and on and on'
             }
 
     def list_games(self):
