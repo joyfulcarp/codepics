@@ -95,6 +95,12 @@ export class GameEvents {
     })
   }
 
+  debug_end_guessing(gameId: number) {
+    this.socket.emit('debug_end_guessing', {
+      'game_id': gameId
+    })
+  }
+
   registerEvents() {
     this.socket.on('update_game', (data) => this.updateGame(data))
     this.socket.on('update_teams',  (data) => this.updateTeams(data))
@@ -138,6 +144,12 @@ export class GameEvents {
     this.socket.emit('reveal_card', {
       'game_id': gameId,
       'card': card
+    })
+  }
+
+  end_guessing(gameId: number) {
+    this.socket.emit('end_guessing', {
+      'game_id': gameId
     })
   }
 

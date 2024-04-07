@@ -272,6 +272,18 @@ class Cafe:
         except (GameSetupError, ActionError, TurnError) as e:
             emit('error', str(e))
 
+    @check_schema({'game_id': int})
+    def on_end_guessing(self, client: str, data):
+        game_id = data['game_id']
+        game = self.games[game_id]
+
+        try:
+            game.end_guessing(client, 0)
+
+            self.send_update(game, 'new_turn', {})
+        except (GameSetupError, ActionError, TurnError) as e:
+            emit('error', str(e))
+
     def send_update(self, game: Game, event: str, payload: dict):
         for client in game.client_to_name:
             response = {'game': game_info(game, client) }
@@ -344,6 +356,15 @@ class Cafe:
 
         client = self._debug_client(gid)
         self.on_reveal_card(client, data)
+
+    @check_schema({'game_id': int})
+    def debug_end_guessing(self, _, data):
+        gid = data['game_id']
+        if gid not in self.debug_game_info:
+            return
+
+        client = self._debug_client(gid)
+        self.on_end_guessing(client, data)
 
     def _debug_client(self, gid: int) -> str:
         state = self.games[gid].play_state

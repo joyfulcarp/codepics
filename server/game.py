@@ -212,28 +212,30 @@ class Game:
             case _:
                 raise TurnError('Not a spymaster turn')
 
-    def _checked_agent_action(func):
-        def inner(self, client: str, card: int):
-            match self.play_state:
-                case AgentTurn(curr_team, actions):
-                    if card < 0 or card >= len(self.cards):
-                        raise ActionError('Out-of-bounds card index')
-                    if not self.cards[card].hidden:
-                        raise ActionError('Card already revealed')
+    def _checked_agent_action(with_card: bool):
+        def decorator(func):
+            def wrapper(self, client: str, card: int):
+                match self.play_state:
+                    case AgentTurn(curr_team, actions):
+                        if with_card:
+                            if card < 0 or card >= len(self.cards):
+                                raise ActionError('Out-of-bounds card index')
+                            if not self.cards[card].hidden:
+                                raise ActionError('Card already revealed')
 
-                    player_team = self.player_team(client)
-                    if player_team != curr_team:
-                        raise TurnError('Player not in agent team')
-                    if client == self.teams[player_team].spymaster:
-                        raise ActionError('Spymaster cannot choose a card')
+                        player_team = self.player_team(client)
+                        if player_team != curr_team:
+                            raise TurnError('Player not in agent team')
+                        if client == self.teams[player_team].spymaster:
+                            raise ActionError('Spymaster cannot choose a card')
 
-                    func(self, client, card, curr_team, actions)
-                case _:
-                    raise TurnError('Not an agent turn')
+                        func(self, client, card, curr_team, actions)
+                    case _:
+                        raise TurnError('Not an agent turn')
+            return wrapper
+        return decorator
 
-        return inner
-
-    @_checked_agent_action
+    @_checked_agent_action(True)
     def vote(self, client: str, card: int, curr_team: Team, actions: AgentActions):
         """Marks a card as a possible agent for other players
 
@@ -247,7 +249,7 @@ class Game:
         else:
             actions.votes[card].remove(client)
 
-    @_checked_agent_action
+    @_checked_agent_action(True)
     def reveal_card(self, client: str, card_index: int, curr_team: Team, actions: AgentActions):
         """Make a guess by revealing a card
 
@@ -273,6 +275,11 @@ class Game:
                 actions.guesses += 1
                 if actions.guesses > actions.max_guesses:
                     self.next_state(SpymasterTurn(other_team))
+
+    @_checked_agent_action(False)
+    def end_guessing(self, client: str, card: int, curr_team: Team, actions: AgentActions):
+        other_team = switch_team(curr_team)
+        self.next_state(SpymasterTurn(other_team));
 
 
 def switch_team(team: Team) -> Team:

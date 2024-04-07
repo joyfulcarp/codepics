@@ -96,6 +96,11 @@ def on_reveal_card(data):
     cafe.on_reveal_card(request.sid, data)
 
 
+@socketio.on('end_guessing')
+def on_end_guessing(data):
+    cafe.on_end_guessing(request.sid, data)
+
+
 @socketio.on('debug_fill_game')
 def on_debug_fill_game(data):
     if app.debug:
@@ -124,6 +129,12 @@ def on_debug_vote(data):
 def on_debug_reveal_card(data):
     if app.debug:
         cafe.debug_reveal_card(request.sid, data)
+
+
+@socketio.on('debug_end_guessing')
+def on_debug_end_guessing(data):
+    if app.debug:
+        cafe.debug_end_guessing(request.sid, data)
 
 
 def main():

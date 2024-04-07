@@ -58,6 +58,7 @@
         </select>
         <button @click="events.debug_vote(props.gameId, debug_info.card)">Vote</button>
         <button @click="events.debug_reveal(props.gameId, debug_info.card)">Reveal</button>
+        <button @click="events.debug_end_guessing(props.gameId)">End Guessing</button>
       </div>
     </div>
   </div>
