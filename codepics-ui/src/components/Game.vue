@@ -18,6 +18,12 @@
         @join-team="events.joinTeam(props.gameId, red, false)"
         @join-spymaster="events.joinTeam(props.gameId, red, true)"
         class="red-team-info" />
+      <HintBar
+        :events="events"
+        :game-id="props.gameId"
+        :allow-actions="selfTeam.value == currentTeam.value"
+        :is-spymaster="isSpymaster"
+        class="hint-bar" />
 
       <div class="game">
         <div v-if="!isMatchmaking">
@@ -71,6 +77,7 @@
 
 <script setup lang="ts">
 import Cards from '@/components/Cards.vue'
+import HintBar from '@/components/HintBar.vue'
 import Host from '@/components/Host.vue'
 import Team from '@/components/Team.vue'
 
@@ -162,7 +169,8 @@ function leaveImage() {
 }
 
 function isSpymasterForTeam(team) {
-  return team['spymaster']['is_self']
+  if (!team || !team['spymaster']) return false
+  else return team['spymaster']['is_self'] == true
 }
 
 function isInTeam(team) {
@@ -173,7 +181,7 @@ function isInTeam(team) {
 <style scoped>
 .ui {
   display: grid;
-  grid-template-rows: min-content 2fr;
+  grid-template-rows: min-content min-content 2fr;
   grid-template-columns: 1fr 1fr 3fr;
   gap: 10px;
   min-width: 0;
@@ -181,7 +189,7 @@ function isInTeam(team) {
 }
 
 .game-info {
-  grid-row: 2;
+  grid-row: 3;
   grid-column: 1 / span 2;
   min-width: 0;
   min-height: 0;
@@ -219,8 +227,13 @@ function isInTeam(team) {
   grid-column: 2;
 }
 
+.hint-bar {
+  grid-row: 2;
+  grid-column: 1 / span 2;
+}
+
 .game {
-  grid-row: 1 / span 2;
+  grid-row: 1 / span 3;
   grid-column: 3;
   min-width: 0;
   min-height: 0;
