@@ -6,8 +6,8 @@
           :id="`card-${index}`"
           @mouseover="$emit('previewImage', imgs[index])">
         <img :class="['image', cardTeams[index]]" :src="imgs[index]" />
-        <button class="vote button" @click="events.vote(props.gameId, index)">Vote</button>
-        <button class="reveal alt-button" @click="events.reveal(props.gameId, index)">Reveal</button>
+        <button v-show="props.allowActions" class="vote button" @click="events.vote(props.gameId, index)">Vote</button>
+        <button v-show="props.allowActions" class="reveal alt-button" @click="events.reveal(props.gameId, index)">Reveal</button>
         <div class="vote-list" v-if="props.votes[index]">
           <p class="name" v-for="player in props.votes[index]">{{ player }}</p>
         </div>
@@ -30,7 +30,8 @@ const props = defineProps({
   gameId: Number,
   cards: Object,
   votes: Object,
-  currentTeam: String
+  currentTeam: String,
+  allowActions: Boolean
 })
 
 const imgs = computed(() => {

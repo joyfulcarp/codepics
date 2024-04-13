@@ -76,6 +76,7 @@ p {
   min-width: 0;
   min-height: 0;
   background-color: v-bind("colors['bg']");
+  border-radius: 10px;
 }
 
 .card-count {

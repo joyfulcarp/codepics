@@ -8,19 +8,19 @@
       </div>
       <Team
         :team="blue"
-        :info="game.teams[blue]"
+        :info="blueTeam"
         @join-team="events.joinTeam(props.gameId, blue, false)"
         @join-spymaster="events.joinTeam(props.gameId, blue, true)"
         class="blue-team-info" />
       <Team
         :team="red"
-        :info="game.teams[red]"
+        :info="redTeam"
         @join-team="events.joinTeam(props.gameId, red, false)"
         @join-spymaster="events.joinTeam(props.gameId, red, true)"
         class="red-team-info" />
 
       <div class="game">
-        <div v-if="isGameInProgress">
+        <div v-if="!isMatchmaking">
           <Cards
             :events="events"
             :base-url="imgUrl"
@@ -29,12 +29,13 @@
             :cards="game.cards"
             :votes="game.votes"
             :current-team="currentTeam"
+            :allow-actions="allowActions"
             @preview-image="previewImage"
             @leave-image="leaveImage" />
         </div>
         <div v-else>
           <Host
-            v-if="showHostSetup"
+            v-if="isHost && isMatchmaking"
             :events="events"
             :game-id="props.gameId" />
         </div>
@@ -43,6 +44,7 @@
 
     <div v-show="is_debug">
       <h2>Debug</h2>
+      <p>{{ game.play_state ? game.play_state : '' }}</p>
       <button @click="events.debug_fill(props.gameId)">Fill Game</button>
       <button @click="events.debug_leave_all()">Leave All</button>
       <div>
@@ -115,21 +117,34 @@ watch(() => props.gameId, (newId, oldId) => {
   events.join(newId, props.name)
 })
 
-const showHostSetup = computed(() => {
-  return isHost && game.value.play_state == 'matchmaking'
-})
-
-const isGameInProgress = computed(() => {
-  return game.value.play_state != 'matchmaking'
+const isMatchmaking = computed(() => {
+  return game.value.play_state == 'matchmaking'
 })
 
 const currentTeam = computed(() => {
   if (game.value.play_state == 'red_spymaster' || game.value.play_state == 'red_agents')
-    return 'red'
+    return red
   else if (game.value.play_state == 'blue_spymaster' || game.value.play_state == 'blue_agents')
-    return 'blue'
+    return blue
   else
     return 'unknown'
+})
+
+const blueTeam = computed(() => { return game.value.teams[blue] })
+const redTeam = computed(() => { return game.value.teams[red] })
+
+const selfTeam = computed(() => {
+  if (isInTeam(blueTeam.value)) return blue
+  else if (isInTeam(redTeam.value)) return red
+  else return ''
+})
+
+const isSpymaster = computed(() => {
+  return isSpymasterForTeam(blueTeam.value) || isSpymasterForTeam(redTeam.value)
+})
+
+const allowActions = computed(() => {
+  return !isSpymaster.value && selfTeam.value == currentTeam.value
 })
 
 onUnmounted(() => {
@@ -145,12 +160,20 @@ function previewImage(url: String) {
 function leaveImage() {
   previewImgSrc.value = ''
 }
+
+function isSpymasterForTeam(team) {
+  return team['spymaster']['is_self']
+}
+
+function isInTeam(team) {
+  return isSpymasterForTeam(team) || team['agents'].some(player => { return player['is_self'] })
+}
 </script>
 
 <style scoped>
 .ui {
   display: grid;
-  grid-template-rows: 1fr 2fr;
+  grid-template-rows: min-content 2fr;
   grid-template-columns: 1fr 1fr 3fr;
   gap: 10px;
   min-width: 0;
