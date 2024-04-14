@@ -188,6 +188,23 @@ const winner = computed(() => {
   else return null
 })
 
+const bgColor = computed(() => {
+  const blueBg = '#084059'
+  const redBg = '#501005'
+  const neutral = 'black'
+  const colors = {
+    'blue_spymaster': blueBg,
+    'blue_agents': blueBg,
+    'red_spymaster': redBg,
+    'red_agents': redBg
+  }
+
+  if (!game.value) return neutral
+  const turnColor = colors[game.value.play_state]
+  if (!turnColor) return neutral
+  else return turnColor
+})
+
 const showPreviewImg = computed(() => {
   return previewImgSrc.value && previewImgSrc.value != ''
 })
@@ -249,7 +266,7 @@ function isInTeam(team) {
 <style scoped>
 .content {
   position: relative;
-  background-color: green;
+  background-color: v-bind("bgColor");
   width: 100vw;
   height: 100vh;
   padding: 10px;
