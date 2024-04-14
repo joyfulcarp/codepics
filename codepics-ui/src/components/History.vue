@@ -1,10 +1,16 @@
 <template>
   <div class="history">
-    <p class="legend">Game Log</p>
+    <p class="banner">Game Log</p>
     <p :class="[playerTeamClasses[index]]" v-for="(log, index) in props.history" :key="index">
       <span class="player" :class="[playerTeamClasses[index]]">{{ log.player_name }}</span>
       {{ log.description }}
       <span v-if="log.action" class="action" :class="[actionTeamClasses[index]]">{{ log.action }}</span>
+    </p>
+    <p v-if="props.winner && props.winner == 'blue'" class="blue banner">
+      <span class="player blue">BLUE TEAM WINS!</span>
+    </p>
+    <p v-if="props.winner && props.winner == 'red'" class="red banner">
+      <span class="player red">RED TEAM WINS!</span>
     </p>
   </div>
 </template>
@@ -13,7 +19,8 @@
 import { computed } from 'vue'
 
 const props = defineProps({
-  history: Object
+  history: Object,
+  winner: String
 })
 
 const playerTeamClasses = computed(() => {
@@ -69,7 +76,7 @@ p {
   }
 }
 
-.legend {
+.banner {
   text-align: center;
 }
 

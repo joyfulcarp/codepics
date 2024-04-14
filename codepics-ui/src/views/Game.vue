@@ -32,7 +32,7 @@
 
       <div class="game-info">
         <div class="game-info-container">
-          <History :history="game.history" class="history" />
+          <History :history="game.history" :winner="winner" class="history" />
           <img v-show="showPreviewImg" class="preview-image" :src="previewImgSrc" />
         </div>
       </div>
