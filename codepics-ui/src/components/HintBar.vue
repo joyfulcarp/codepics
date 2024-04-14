@@ -18,7 +18,7 @@
 <script setup lang="ts">
 import { GameEvents } from '@/assets/ts/game.ts'
 
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 const props = defineProps({
   events: GameEvents,
@@ -51,6 +51,17 @@ const placeholder = computed(() => {
     return "Waiting for hint..."
   }
 })
+
+watch(() => props.suppliedHint, (newHint, oldHint) => {
+  if (!newHint) return
+
+  const suppliedHint = newHint['hint']
+  const suppliedCount = newHint['count']
+  if (suppliedHint === undefined || suppliedCount === undefined) return
+
+  hint.value = suppliedHint
+  count.value = suppliedCount
+}, {immediate: true})
 
 </script>
 
