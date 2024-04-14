@@ -8,9 +8,9 @@
         <img :class="['image', cardTeams[index]]" :src="imgs[index]" />
         <button v-show="props.allowActions" class="vote button" @click="events.vote(props.gameId, index)">Vote</button>
         <button v-show="props.allowActions" class="reveal alt-button" @click="events.reveal(props.gameId, index)">Reveal</button>
-        <div class="vote-list" v-if="props.votes[index]">
-          <p class="name" v-for="player in props.votes[index]">{{ player }}</p>
-        </div>
+        <p class="vote-list" v-if="props.votes[index]">
+          <span class="name" v-for="player in props.votes[index]">{{ player }}</span>
+        </p>
       </div>
     </template>
   </div>
@@ -83,8 +83,8 @@ const cardTeams = computed(() => {
   display: grid;
   grid-template-rows: min-content 1fr;
   grid-template-columns: 1fr 1fr;
-  place-items: center;
 
+  contain: size;
   border-radius: 10px;
 }
 
@@ -116,14 +116,14 @@ const cardTeams = computed(() => {
   z-index: 1;
   width: 100%;
   height: 100%;
-  contain: size;
-  object-fit: contain;
+  object-fit: cover;
   border-radius: 10px;
 }
 
 .vote {
   grid-row: 1;
   grid-column: 1;
+  justify-self: start;
 
   z-index: 2;
   margin: 5px;
@@ -132,6 +132,7 @@ const cardTeams = computed(() => {
 .reveal {
   grid-row: 1;
   grid-column: 2;
+  justify-self: end;
 
   z-index: 2;
   margin: 5px;
@@ -143,22 +144,16 @@ const cardTeams = computed(() => {
 
   z-index: 2;
   width: 100%;
-  height: 100%;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
+  max-height: 100%;
   overflow: auto;
-  contain: size;
 }
 
 .name {
   display: inline-block;
-  font-weight: normal;
-  padding: 1px 5px;
+  margin: 5px;
+  padding: 5px;
+  height: min-content;
   color: white;
   background-color: v-bind('bgColor');
-  height: min-content;
-  margin-left: 5px;
-  margin-right: 5px;
 }
 </style>
