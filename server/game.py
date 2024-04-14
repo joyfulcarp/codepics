@@ -220,9 +220,9 @@ class Game:
 
                 player_name = self.client_to_name[client]
                 player_team = curr_team
-                description = 'gives hint'
+                description = 'gives clue'
                 action = f'{hint} {count}'
-                action_team = curr_team
+                action_team = ''
                 self.history.append(History(player_name, player_team, description, action, action_team))
 
                 agent_actions = AgentActions(hint, count)
@@ -303,6 +303,13 @@ class Game:
 
     @_checked_agent_action(False)
     def end_guessing(self, client: str, card: int, curr_team: Team, actions: AgentActions):
+        player_name = self.client_to_name[client]
+        player_team = curr_team
+        description = 'ends guessing'
+        action = ''
+        action_team = ''
+        self.history.append(History(player_name, player_team, description, action, action_team))
+
         other_team = switch_team(curr_team)
         self.next_state(SpymasterTurn(other_team));
 

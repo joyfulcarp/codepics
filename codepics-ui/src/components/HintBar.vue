@@ -65,7 +65,7 @@ watch(() => props.suppliedHint, (newHint, oldHint) => {
 
 </script>
 
-<style>
+<style scoped>
 input {
   height: 30px;
 }

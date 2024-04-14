@@ -3,7 +3,8 @@
     <div class="ui">
       <div class="game-info">
         <div class="game-info-container">
-          <img class="preview-image" :src="previewImgSrc" />
+          <History :history="game.history" class="history" />
+          <img v-show="showPreviewImg" class="preview-image" :src="previewImgSrc" />
         </div>
       </div>
       <Team
@@ -80,6 +81,7 @@
 <script setup lang="ts">
 import Cards from '@/components/Cards.vue'
 import HintBar from '@/components/HintBar.vue'
+import History from '@/components/History.vue'
 import Host from '@/components/Host.vue'
 import Team from '@/components/Team.vue'
 
@@ -164,6 +166,10 @@ const allowCardActions = computed(() => {
   return !isSpymaster.value && isActiveTeam.value && !isSpymasterTurn.value
 })
 
+const showPreviewImg = computed(() => {
+  return previewImgSrc.value && previewImgSrc.value != ''
+})
+
 onUnmounted(() => {
   if (props.gameId != null) {
     events.leave(props.gameId)
@@ -218,6 +224,7 @@ function isInTeam(team) {
 }
 
 .preview-image {
+  z-index: 2;
   grid-row: 1;
   grid-column: 1;
   min-width: 0;
@@ -225,6 +232,14 @@ function isInTeam(team) {
   width: 100%;
   height: 100%;
   object-fit: contain;
+}
+
+.history {
+  z-index: 1;
+  grid-row: 1;
+  grid-column: 1;
+  width: 100%;
+  height: 100%;
 }
 
 .blue-team-info {
