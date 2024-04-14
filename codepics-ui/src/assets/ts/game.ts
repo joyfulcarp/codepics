@@ -133,6 +133,14 @@ export class GameEvents {
     this.socket.emit('start_game', {'game_id': gameId})
   }
 
+  giveHint(gameId: number, hint: string, count: number) {
+    this.socket.emit('give_hint', {
+      'game_id': gameId,
+      'hint': hint,
+      'count': count
+    })
+  }
+
   vote(gameId: number, card: number) {
     this.socket.emit('vote', {
       'game_id': gameId,

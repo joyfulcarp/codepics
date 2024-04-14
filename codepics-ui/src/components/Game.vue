@@ -21,8 +21,10 @@
       <HintBar
         :events="events"
         :game-id="props.gameId"
-        :allow-actions="selfTeam.value == currentTeam.value"
+        :is-active-team="isActiveTeam"
         :is-spymaster="isSpymaster"
+        :is-spymaster-turn="isSpymasterTurn"
+        :supplied-hint="game.hint"
         class="hint-bar" />
 
       <div class="game">
@@ -35,7 +37,7 @@
             :cards="game.cards"
             :votes="game.votes"
             :current-team="currentTeam"
-            :allow-actions="allowActions"
+            :allow-actions="allowCardActions"
             @preview-image="previewImage"
             @leave-image="leaveImage" />
         </div>
@@ -150,8 +152,16 @@ const isSpymaster = computed(() => {
   return isSpymasterForTeam(blueTeam.value) || isSpymasterForTeam(redTeam.value)
 })
 
-const allowActions = computed(() => {
-  return !isSpymaster.value && selfTeam.value == currentTeam.value
+const isSpymasterTurn = computed(() => {
+  return game.value.play_state == 'red_spymaster' || game.value.play_state == 'blue_spymaster'
+})
+
+const isActiveTeam = computed(() => {
+  return selfTeam.value == currentTeam.value
+})
+
+const allowCardActions = computed(() => {
+  return !isSpymaster.value && isActiveTeam.value && !isSpymasterTurn.value
 })
 
 onUnmounted(() => {

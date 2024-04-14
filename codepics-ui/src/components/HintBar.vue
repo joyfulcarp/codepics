@@ -23,23 +23,25 @@ import { computed, ref } from 'vue'
 const props = defineProps({
   events: GameEvents,
   gameId: Number,
-  allowActions: Boolean,
-  isSpymaster: Boolean
+  isActiveTeam: Boolean,
+  isSpymaster: Boolean,
+  isSpymasterTurn: Boolean,
+  suppliedHint: Object
 })
 
 const hint = ref('')
 const count = ref(0)
 
 const disableInput = computed(() => {
-  return !props.allowActions || !props.isSpymaster
+  return !props.isActiveTeam || !props.isSpymaster
 })
 
 const showGiveHintButton = computed(() => {
-  return props.allowActions && props.isSpymaster
+  return props.isActiveTeam && props.isSpymaster
 })
 
 const showEndGuessingButton = computed(() => {
-  return props.allowActions && !props.isSpymaster
+  return props.isActiveTeam && !props.isSpymaster && !props.isSpymasterTurn
 })
 
 const placeholder = computed(() => {
@@ -54,6 +56,7 @@ const placeholder = computed(() => {
 
 <style>
 input {
+  height: 30px;
 }
 
 input:disabled {
@@ -69,9 +72,6 @@ select:disabled {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-}
-
-.shrink {
 }
 
 .grow {
