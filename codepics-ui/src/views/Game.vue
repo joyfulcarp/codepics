@@ -1,40 +1,46 @@
 <template>
-  <div v-if="game != null">
-    <div class="ui">
-      <div class="game-info">
-        <div class="game-info-container">
-          <History :history="game.history" class="history" />
-          <img v-show="showPreviewImg" class="preview-image" :src="previewImgSrc" />
-        </div>
-      </div>
+  <div class="content">
+    <div class="player-info">
+      <input id="player-name" v-model="new_name" placeholder="Enter your name" />
+      <button class="button" @click="updateName()">Update Name</button>
+    </div>
+
+    <div v-if="game != null" class="game-ui">
       <Team
         :team="blue"
         :info="blueTeam"
-        @join-team="events.joinTeam(props.gameId, blue, false)"
-        @join-spymaster="events.joinTeam(props.gameId, blue, true)"
+        @join-team="events.joinTeam(gameId, blue, false)"
+        @join-spymaster="events.joinTeam(gameId, blue, true)"
         class="blue-team-info" />
       <Team
         :team="red"
         :info="redTeam"
-        @join-team="events.joinTeam(props.gameId, red, false)"
-        @join-spymaster="events.joinTeam(props.gameId, red, true)"
+        @join-team="events.joinTeam(gameId, red, false)"
+        @join-spymaster="events.joinTeam(gameId, red, true)"
         class="red-team-info" />
       <HintBar
         :events="events"
-        :game-id="props.gameId"
+        :game-id="gameId"
         :is-active-team="isActiveTeam"
         :is-spymaster="isSpymaster"
         :is-spymaster-turn="isSpymasterTurn"
         :supplied-hint="game.hint"
         class="hint-bar" />
 
-      <div class="game">
+      <div class="game-info">
+        <div class="game-info-container">
+          <History :history="game.history" class="history" />
+          <img v-show="showPreviewImg" class="preview-image" :src="previewImgSrc" />
+        </div>
+      </div>
+
+      <div class="game-board">
         <div v-if="!isMatchmaking">
           <Cards
             :events="events"
             :base-url="imgUrl"
             :collection="game.collection"
-            :game-id="props.gameId"
+            :game-id="gameId"
             :cards="game.cards"
             :votes="game.votes"
             :current-team="currentTeam"
@@ -46,40 +52,28 @@
           <Host
             v-if="isHost && isMatchmaking"
             :events="events"
-            :game-id="props.gameId" />
+            :game-id="gameId" />
         </div>
       </div>
     </div>
 
-    <div class="debug" v-show="is_debug">
-      <h2>Debug</h2>
-      <p>{{ game.play_state ? game.play_state : '' }}</p>
-      <button @click="events.debug_fill(props.gameId)">Fill Game</button>
-      <button @click="events.debug_leave_all()">Leave All</button>
-      <div>
-        <input v-model="debug_info.hint" placeholder="Enter your hint" />
-        <select v-model="debug_info.count">
-          <option v-for="i in 10">{{ i - 1 }}</option>
-        </select>
-        <button @click="events.debug_give_hint(props.gameId, debug_info.hint, debug_info.count)">Go</button>
-      </div>
-      <div>
-        <select v-model="debug_info.card">
-          <option v-for="i in 20">{{ i - 1 }}</option>
-        </select>
-        <button @click="events.debug_vote(props.gameId, debug_info.card)">Vote</button>
-        <button @click="events.debug_reveal(props.gameId, debug_info.card)">Reveal</button>
-        <button @click="events.debug_end_guessing(props.gameId)">End Guessing</button>
-      </div>
+    <!-- Else: game == null -->
+    <div v-else class="game-connect-error">
+      <h1>Error 404: Invalid lobby</h1>
+      <p>Please return to homepage and create a new room.</p>
     </div>
-  </div>
-  <div v-else>
-    <p>Invalid game ID</p>
+
+    <Debug
+      v-if="isDebug && game != null"
+      :events="events"
+      :game-id="gameId"
+      :game="game" />
   </div>
 </template>
 
 <script setup lang="ts">
 import Cards from '@/components/Cards.vue'
+import Debug from '@/components/Debug.vue'
 import HintBar from '@/components/HintBar.vue'
 import History from '@/components/History.vue'
 import Host from '@/components/Host.vue'
@@ -96,14 +90,45 @@ import {
   onMounted,
   onUnmounted
 } from 'vue'
+import { useRoute } from 'vue-router'
 
-const props = defineProps({
-  name: String,
-  gameId: Number
+const route = useRoute()
+const gameId = ref(null)
+watch(() => route.params.id, (newId, oldId) => {
+  if (oldId === newId) return
+
+  const parsed = parseInt(newId)
+  if (Number.isNaN(parsed)) {
+    gameId.value = null
+    return
+  }
+
+  gameId.value = parsed
+}, {immediate: true})
+
+onMounted(() => {
+  if (name.value != null && gameId.value != null) {
+    events.join(gameId.value, name.value)
+  }
 })
 
-const is_debug = import.meta.env.DEV
-const debug_info = ref({'hint': 'Test hint', 'count': 0, 'card': 0})
+watch(() => gameId, (newId, oldId) => {
+  events.leave(oldId)
+  game.value = null
+  events.join(newId, name.value)
+})
+
+onUnmounted(() => {
+  if (gameId.value != null) {
+    events.leave(gameId.value)
+  }
+})
+
+const isDebug = import.meta.env.DEV
+
+const name = ref('Test')
+//const name = ref(null)
+const new_name = ref(null)
 
 const game: GameState = ref(null)
 const isHost = ref(false)
@@ -115,18 +140,6 @@ const events = new GameEvents(url, game, isHost)
 
 const blue = 'blue'
 const red = 'red'
-
-onMounted(() => {
-  if (props.name != null && props.gameId != null) {
-    events.join(props.gameId, props.name)
-  }
-})
-
-watch(() => props.gameId, (newId, oldId) => {
-  events.leave(oldId)
-  game.value = null
-  events.join(newId, props.name)
-})
 
 const isMatchmaking = computed(() => {
   return game.value.play_state == 'matchmaking'
@@ -170,11 +183,9 @@ const showPreviewImg = computed(() => {
   return previewImgSrc.value && previewImgSrc.value != ''
 })
 
-onUnmounted(() => {
-  if (props.gameId != null) {
-    events.leave(props.gameId)
-  }
-})
+function updateName() {
+  name.value = new_name.value
+}
 
 function previewImage(url: String) {
   previewImgSrc.value = url
@@ -195,53 +206,35 @@ function isInTeam(team) {
 </script>
 
 <style scoped>
-.ui {
+.content {
+  position: relative;
+  background-color: green;
+  width: 100vw;
+  height: 100vh;
+
   display: grid;
-  grid-template-rows: min-content min-content 2fr;
+  grid-template-rows: min-content min-content min-content 1fr;
   grid-template-columns: 1fr 1fr 3fr;
   gap: 10px;
-  min-width: 0;
-  min-height: 0;
 }
 
-.game-info {
-  grid-row: 3;
+.player-info {
+  grid-row: 1;
   grid-column: 1 / span 2;
-  min-width: 0;
-  min-height: 0;
-  contain: size;
 }
 
-.game-info-container {
+.game-connect-error {
+  grid-row: 2 / span 3;
+  grid-column: 1 / span 3;
+}
+
+.game-ui {
+  grid-row: 2 / span 3;
+  grid-column: 1 / span 3;
+
   display: grid;
-  grid-template-rows: 1fr;
-  grid-template-columns: 1fr;
-  min-width: 0;
-  min-height: 0;
-  width: 100%;
-  height: 100%;
-  contain: size;
-}
-
-.preview-image {
-  z-index: 2;
-  grid-row: 1;
-  grid-column: 1;
-  min-width: 0;
-  min-height: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  background-color: white;
-  border-radius: 10px;
-}
-
-.history {
-  z-index: 1;
-  grid-row: 1;
-  grid-column: 1;
-  width: 100%;
-  height: 100%;
+  grid-template-rows: subgrid;
+  grid-template-columns: subgrid;
 }
 
 .blue-team-info {
@@ -259,18 +252,44 @@ function isInTeam(team) {
   grid-column: 1 / span 2;
 }
 
-.game {
-  grid-row: 1 / span 3;
-  grid-column: 3;
-  min-width: 0;
-  min-height: 0;
+.game-info {
+  grid-row: 3;
+  grid-column: 1 / span 2;
 }
 
-.debug {
-  z-index: 99;
-  position: absolute;
-  bottom: 0;
-  margin: 0;
-  padding: 0;
+.game-info-container {
+  display: grid;
+  grid-template-rows: 1fr;
+  grid-template-columns: 1fr;
+
+  width: 100%;
+  height: 100%;
+  contain: size;
+}
+
+.history {
+  grid-row: 1;
+  grid-column: 1;
+
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
+
+.preview-image {
+  grid-row: 1;
+  grid-column: 1;
+
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background-color: white;
+  border-radius: 10px;
+}
+
+.game-board {
+  grid-row: 1 / span 3;
+  grid-column: 3;
 }
 </style>

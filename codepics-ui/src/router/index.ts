@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '@/views/Home.vue'
-import LobbyView from '@/views/Lobby.vue'
+import GameView from '@/views/Game.vue'
 import PingView from '@/views/Ping.vue'
 
 const router = createRouter({
@@ -14,7 +14,7 @@ const router = createRouter({
     {
       path: '/lobby/:id',
       name: 'lobby',
-      component: LobbyView
+      component: GameView
     },
     {
       path: '/ping',
