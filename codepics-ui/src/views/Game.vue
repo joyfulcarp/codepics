@@ -1,8 +1,11 @@
 <template>
   <div class="content">
     <div class="player-info">
-      <input id="player-name" v-model="new_name" placeholder="Enter your name" />
+      <input class="player-name" v-model="new_name" placeholder="ENTER YOUR NAME" />
       <button class="button" @click="updateName()">Update Name</button>
+    </div>
+    <div class="message-info">
+      <p v-if="message != ''" class="message">{{ message }}</p>
     </div>
 
     <div v-if="game != null" class="game-ui">
@@ -152,8 +155,8 @@ const currentTeam = computed(() => {
     return 'unknown'
 })
 
-const blueTeam = computed(() => { return game.value.teams[blue] })
-const redTeam = computed(() => { return game.value.teams[red] })
+const blueTeam = computed(() => { return game.value ? game.value.teams[blue] : null })
+const redTeam = computed(() => { return game.value ? game.value.teams[red] : null })
 
 const selfTeam = computed(() => {
   if (isInTeam(blueTeam.value)) return blue
@@ -166,6 +169,7 @@ const isSpymaster = computed(() => {
 })
 
 const isSpymasterTurn = computed(() => {
+  if (!game.value) return false
   return game.value.play_state == 'red_spymaster' || game.value.play_state == 'blue_spymaster'
 })
 
@@ -177,8 +181,45 @@ const allowCardActions = computed(() => {
   return !isSpymaster.value && isActiveTeam.value && !isSpymasterTurn.value
 })
 
+const winner = computed(() => {
+  if (!game.value.winner) return null
+  else if (game.value.winner == blue) return blue
+  else if (game.value.winner == red) return red
+  else return null
+})
+
 const showPreviewImg = computed(() => {
   return previewImgSrc.value && previewImgSrc.value != ''
+})
+
+const message = computed(() => {
+  name.value
+  if (name.value == '')
+    return 'Enter your name.'
+  else if (!game.value)
+    return ''
+  else if (selfTeam.value == '')
+    return 'Join a team.'
+  else if (isMatchmaking.value)
+    return 'Waiting for game to start...'
+  else if (!isActiveTeam.value && isSpymasterTurn.value)
+    return 'The opponent spymaster is playing, wait for your turn...'
+  else if (!isActiveTeam.value && !isSpymasterTurn.value)
+    return 'The opponent agents are playing, wait for your turn...'
+  else if (isSpymaster.value && isSpymasterTurn.value)
+    return 'Give your agents a clue.'
+  else if (isSpymaster.value && !isSpymasterTurn.value)
+    return 'Your agents are guessing now...'
+  else if (!isSpymaster.value && isSpymasterTurn.value)
+    return 'Wait for your spymaster to give a clue...'
+  else if (!isSpymaster.value && !isSpymasterTurn.value)
+    return 'Try to guess a word.'
+  else if (winner.value && winner.value == 'blue')
+    return 'Blue team wins!'
+  else if (winner.value && winner.value == 'red')
+    return 'Red team wins!'
+  else
+    return ''
 })
 
 function updateName() {
@@ -199,7 +240,9 @@ function isSpymasterForTeam(team) {
 }
 
 function isInTeam(team) {
-  return isSpymasterForTeam(team) || team['agents'].some(player => { return player['is_self'] })
+  if (isSpymasterForTeam(team)) return true
+  if (!team || !team['agents']) return false
+  return team['agents'].some(player => { return player['is_self'] })
 }
 </script>
 
@@ -220,6 +263,32 @@ function isInTeam(team) {
 .player-info {
   grid-row: 1;
   grid-column: 1 / span 2;
+
+  display: flex;
+  flex-wrap: nowrap;
+  align-content: center;
+  gap: 10px;
+}
+
+.player-name {
+  height: 100%;
+}
+
+.message-info {
+  grid-row: 1;
+  grid-column: 3;
+
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  align-items: center;
+}
+
+.message {
+  display: inline-block;
+  padding: 5px;
+  background-color: white;
+  border-radius: 10px;
 }
 
 .game-connect-error {

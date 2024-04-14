@@ -11,6 +11,16 @@ body {
   overflow-x: hidden;
 }
 
+input {
+  padding-left: 10px;
+  padding-right: 10px;
+  text-transform: uppercase;
+  font-weight: bold;
+  border-style: none;
+  border-radius: 5px;
+  background-color: white;
+}
+
 .button {
   background-color: #ffe400;
   border-color: #f3bb00;

@@ -71,13 +71,6 @@ watch(() => props.suppliedHint, (newHint, oldHint) => {
 <style scoped>
 input {
   height: 30px;
-  padding-left: 10px;
-  padding-right: 10px;
-  text-transform: uppercase;
-  font-weight: bold;
-  border-style: none;
-  border-radius: 5px;
-  background-color: white;
 }
 
 select {
