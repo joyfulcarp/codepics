@@ -52,6 +52,7 @@ const actionTeamClasses = computed(() => {
 <style scoped>
 .history {
   border-radius: 10px;
+  background-color: white;
   overflow: auto;
 }
 

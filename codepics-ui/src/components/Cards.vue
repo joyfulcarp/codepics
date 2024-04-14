@@ -96,7 +96,6 @@ const cardTeams = computed(() => {
   min-height: 0;
   width: 100%;
   object-fit: contain;
-  box-sizing: border-box;
   border-radius: 10px;
 }
 

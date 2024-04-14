@@ -1,11 +1,12 @@
 <template>
-  <div>
-    <label for="player_name">Choose a name:</label>
-    <input id="player_name" v-model="new_name" placeholder="Enter your name" />
-    <button @click="updateName()">Play</button>
-  </div>
-  <div>
-    <Game :name="name" :game-id="gameId" />
+  <div class="body">
+    <div class="info">
+      <input id="player_name" v-model="new_name" placeholder="Enter your name" />
+      <button class="button" @click="updateName()">Update Name</button>
+    </div>
+    <div class="game">
+      <Game :name="name" :game-id="gameId" />
+    </div>
   </div>
 </template>
 
@@ -42,3 +43,27 @@ function updateName() {
   name.value = new_name.value
 }
 </script>
+
+<style scoped>
+input {
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.body {
+  position: relative;
+  padding-left: 10px;
+  padding-right: 10px;
+  background-color: green;
+}
+
+.info {
+  display: flex;
+  padding-top: 5px;
+  column-gap: 10px;
+}
+
+.game {
+  padding-top: 10px;
+}
+</style>

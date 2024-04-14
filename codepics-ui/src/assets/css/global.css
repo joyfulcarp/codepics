@@ -1,5 +1,14 @@
-html, body, button {
+*, *::before, *::after {
+  box-sizing: border-box;
   font-family: 'Roboto', sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  max-width: 100vw;
+  max-height: 100vh;
+  overflow-x: hidden;
 }
 
 .button {

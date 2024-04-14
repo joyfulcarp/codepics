@@ -51,7 +51,7 @@
       </div>
     </div>
 
-    <div v-show="is_debug">
+    <div class="debug" v-show="is_debug">
       <h2>Debug</h2>
       <p>{{ game.play_state ? game.play_state : '' }}</p>
       <button @click="events.debug_fill(props.gameId)">Fill Game</button>
@@ -264,5 +264,13 @@ function isInTeam(team) {
   grid-column: 3;
   min-width: 0;
   min-height: 0;
+}
+
+.debug {
+  z-index: 99;
+  position: absolute;
+  bottom: 0;
+  margin: 0;
+  padding: 0;
 }
 </style>
