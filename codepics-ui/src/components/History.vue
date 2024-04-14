@@ -48,7 +48,7 @@ const actionTeamClasses = computed(() => {
     else if (team == 'innocent')
       teams.push('innocent')
     else if (team == 'assassin')
-      team.push('assassin')
+      teams.push('assassin')
     else
       teams.push('none')
   }

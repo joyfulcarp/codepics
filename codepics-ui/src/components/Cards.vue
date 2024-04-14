@@ -6,11 +6,14 @@
           :card="[cardTeams[index]]"
           @mouseover="$emit('previewImage', imgs[index])">
         <img :class="['image', cardTeams[index]]" :src="imgs[index]" />
-        <button v-show="props.allowActions" class="vote button" @click="events.vote(props.gameId, index)">Vote</button>
-        <button v-show="props.allowActions" class="reveal alt-button" @click="events.reveal(props.gameId, index)">Reveal</button>
+        <button v-show="actions[index]" class="vote button" @click="events.vote(props.gameId, index)">Vote</button>
+        <button v-show="actions[index]" class="reveal alt-button" @click="events.reveal(props.gameId, index)">Reveal</button>
         <p class="vote-list" v-if="props.votes[index]">
           <span class="name" v-for="player in props.votes[index]">{{ player }}</span>
         </p>
+        <div v-if="card.hidden === false" class="cover" :class="[cardTeams[index]]">
+          <p>{{ index }}</p>
+        </div>
       </div>
     </template>
   </div>
@@ -40,6 +43,21 @@ const imgs = computed(() => {
     links.push(props.baseUrl + props.collection + '/' + card['asset'])
   }
   return links
+})
+
+const actions = computed(() => {
+  let act = []
+  for (const card of props.cards) {
+    if (!props.allowActions)
+      act.push(false)
+    else if (card.hidden == undefined || card.hidden == null)
+      act.push(true)
+    else if (card.hidden == false)
+      act.push(false)
+    else
+      act.push(true)
+  }
+  return act
 })
 
 const bgColor = computed(() => {
@@ -91,22 +109,41 @@ const cardTeams = computed(() => {
 .red-card {
   border-width: 10px;
   border-style: solid;
-  border-color: #8f2b1c;
+  border-color: #e55731;
+
+  &.cover {
+    background-color: #e55731;
+  }
 }
 
 .blue-card {
+  border-width: 10px;
   border-style: solid;
   border-color: #3284a3;
+
+  &.cover {
+    background-color: #3284a3;
+  }
 }
 
 .innocent-card {
+  border-width: 10px;
   border-style: solid;
   border-color: #f3d8b5;
+
+  &.cover {
+    background-color: #f3d8b5;
+  }
 }
 
 .assassin-card {
+  border-width: 20px;
   border-style: solid;
   border-color: black;
+
+  &.cover {
+    background-color: black;
+  }
 }
 
 .image {
@@ -155,5 +192,25 @@ const cardTeams = computed(() => {
   height: min-content;
   color: white;
   background-color: v-bind('bgColor');
+}
+
+.cover {
+  grid-row: 1 / span 2;
+  grid-column: 1 / span 2;
+
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.cover p {
+  color: white;
+  font-size: 4em;
+  text-align: center;
 }
 </style>

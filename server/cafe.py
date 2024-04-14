@@ -6,6 +6,7 @@ from game import (
     SpymasterTurn,
     Team,
     TeamData,
+    Win,
 
     ActionError,
     GameSetupError,
@@ -98,6 +99,14 @@ def hint_info(game: Game):
             return {}
 
 
+def win_info(game: Game):
+    match game.play_state:
+        case Win(team):
+            return team
+        case _:
+            return None
+
+
 def history_info(game: Game):
     history = []
     for entry in game.history:
@@ -120,6 +129,7 @@ def game_info(game: Game, client: str):
         'collection': game.card_collection,
         'votes': vote_info(game),
         'hint': hint_info(game),
+        'winner': win_info(game),
         'history': history_info(game)
     }
 

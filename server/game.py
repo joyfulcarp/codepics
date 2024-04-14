@@ -276,15 +276,15 @@ class Game:
         """
         other_team = switch_team(curr_team)
 
+        card = self.cards[card_index]
+        card.hidden = False
+
         player_name = self.client_to_name[client]
         player_team = curr_team
         description = 'picked card'
         action = f'{card_index}'
         action_team = card.team
         self.history.append(History(player_name, player_team, description, action, action_team))
-
-        card = self.cards[card_index]
-        card.hidden = False
 
         match card.team:
             case Team.ASSASSIN:

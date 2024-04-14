@@ -191,7 +191,7 @@ const winner = computed(() => {
 const bgColor = computed(() => {
   const blueBg = '#084059'
   const redBg = '#501005'
-  const neutral = 'black'
+  const neutral = 'gray'
   const colors = {
     'blue_spymaster': blueBg,
     'blue_agents': blueBg,
