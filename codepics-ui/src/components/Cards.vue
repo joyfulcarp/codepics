@@ -101,19 +101,19 @@ const cardTeams = computed(() => {
 }
 
 .red-card {
-  border: 5px solid red;
+  border: 10px solid #8f2b1c;
 }
 
 .blue-card {
-  border: 5px solid blue;
+  border: 10px solid #3284a3;
 }
 
 .innocent-card {
-  border: 5px solid #f3d8b5;
+  border: 10px solid #f3d8b5;
 }
 
 .assassin-card {
-  border: 5px solid black;
+  border: 10px solid black;
 }
 
 .vote {

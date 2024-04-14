@@ -232,6 +232,8 @@ function isInTeam(team) {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  background-color: white;
+  border-radius: 10px;
 }
 
 .history {

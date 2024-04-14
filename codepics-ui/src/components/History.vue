@@ -4,7 +4,7 @@
     <p :class="[playerTeamClasses[index]]" v-for="(log, index) in props.history" :key="index">
       <span class="player" :class="[playerTeamClasses[index]]">{{ log.player_name }}</span>
       {{ log.description }}
-      <span class="action" :class="[actionTeamClasses[index]]">{{ log.action }}</span>
+      <span v-if="log.action" class="action" :class="[actionTeamClasses[index]]">{{ log.action }}</span>
     </p>
   </div>
 </template>
@@ -90,6 +90,7 @@ span {
   display: inline-block;
   padding: 4px;
   background-color: white;
+  text-transform: uppercase;
 
   &.blue {
     color: #3284a3;

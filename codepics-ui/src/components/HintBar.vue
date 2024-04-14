@@ -5,11 +5,11 @@
       <option v-for="i in 10">{{ i - 1 }}</option>
     </select>
     <button
-      class="shrink button"
+      class="shrink alt-button"
       v-show="showGiveHintButton"
       @click="events.giveHint(props.gameId, hint.value, count.value)">Give Hint</button>
     <button
-      class="shrink alt-button"
+      class="shrink button"
       v-show="showEndGuessingButton"
       @click="events.endGuessing(props.gameId)">End Guessing</button>
   </div>
@@ -57,10 +57,13 @@ watch(() => props.suppliedHint, (newHint, oldHint) => {
 
   const suppliedHint = newHint['hint']
   const suppliedCount = newHint['count']
-  if (suppliedHint === undefined || suppliedCount === undefined) return
-
-  hint.value = suppliedHint
-  count.value = suppliedCount
+  if (suppliedHint === undefined || suppliedCount === undefined) {
+    hint.value = ''
+    count.value = '0'
+  } else {
+    hint.value = suppliedHint
+    count.value = suppliedCount
+  }
 }, {immediate: true})
 
 </script>
@@ -68,15 +71,26 @@ watch(() => props.suppliedHint, (newHint, oldHint) => {
 <style scoped>
 input {
   height: 30px;
-}
-
-input:disabled {
+  padding-left: 10px;
+  padding-right: 10px;
+  text-transform: uppercase;
+  font-weight: bold;
+  border-style: none;
+  border-radius: 5px;
+  background-color: white;
 }
 
 select {
+  padding-left: 10px;
+  padding-right: 10px;
+  font-weight: bold;
+  border-style: none;
+  border-radius: 5px;
+  background-color: white;
 }
 
 select:disabled {
+  appearance: none;
 }
 
 .row {
