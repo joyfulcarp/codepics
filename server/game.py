@@ -14,6 +14,7 @@ class Team(str, Enum):
 class AgentActions:
     def __init__(self, hint: str, count: int):
         self.hint = hint
+        self.count = count
         self.max_guesses = count + 1
         self.guesses: int = 0
         self.votes: dict[int: set[str]] = {}
@@ -71,6 +72,15 @@ class Card:
     hidden: bool = True
 
 
+@dataclass
+class History:
+    player_name: str
+    player_team: Team
+    description: str
+    action: str
+    action_team: Team
+
+
 class GameSetupError(Exception):
     pass
 
@@ -98,6 +108,7 @@ class Game:
             Team.RED: TeamData()
         }
         self.cards: list[Card] = []
+        self.history: list[History] = []
 
     def num_players(self) -> int:
         return len(self.client_to_name)
@@ -207,8 +218,15 @@ class Game:
                 if client != self.teams[curr_team].spymaster:
                     raise ActionError('Player is not spymaster of current team')
 
-                actions = AgentActions(hint, count)
-                self.next_state(AgentTurn(curr_team, actions))
+                player_name = self.client_to_name[client]
+                player_team = curr_team
+                description = 'gives hint'
+                action = f'{hint} {count}'
+                action_team = curr_team
+                self.history.append(History(player_name, player_team, description, action, action_team))
+
+                agent_actions = AgentActions(hint, count)
+                self.next_state(AgentTurn(curr_team, agent_actions))
             case _:
                 raise TurnError('Not a spymaster turn')
 
@@ -257,6 +275,13 @@ class Game:
         game.reveal_card(client, card)
         """
         other_team = switch_team(curr_team)
+
+        player_name = self.client_to_name[client]
+        player_team = curr_team
+        description = 'picked card'
+        action = f'{card_index}'
+        action_team = curr_team
+        self.history.append(History(player_name, player_team, description, action, action_team))
 
         card = self.cards[card_index]
         card.hidden = False

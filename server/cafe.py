@@ -86,6 +86,31 @@ def vote_info(game: Game):
             return {}
 
 
+def hint_info(game: Game):
+    match game.play_state:
+        case AgentTurn(team, action):
+            hints = {
+                'hint': action.hint,
+                'count': action.count
+            }
+            return hints
+        case _:
+            return {}
+
+
+def history_info(game: Game):
+    history = []
+    for entry in game.history:
+        history.append({
+            'player_name': entry.player_name,
+            'player_team': entry.player_team,
+            'description': entry.description,
+            'action': entry.action,
+            'action_team': entry.action_team
+        })
+    return history
+
+
 def game_info(game: Game, client: str):
     return {
         'id': game.game_id,
@@ -93,7 +118,9 @@ def game_info(game: Game, client: str):
         'teams': all_team_info(game, client),
         'cards': [card_info(c, True) for c in game.cards],
         'collection': game.card_collection,
-        'votes': vote_info(game)
+        'votes': vote_info(game),
+        'hint': hint_info(game),
+        'history': history_info(game)
     }
 
 
