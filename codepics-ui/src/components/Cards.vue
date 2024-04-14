@@ -3,7 +3,7 @@
     <template v-for="(card, index) in props.cards" :key="index">
       <div
           class="card"
-          :id="`card-${index}`"
+          :card="[cardTeams[index]]"
           @mouseover="$emit('previewImage', imgs[index])">
         <img :class="['image', cardTeams[index]]" :src="imgs[index]" />
         <button v-show="props.allowActions" class="vote button" @click="events.vote(props.gameId, index)">Vote</button>
@@ -75,8 +75,8 @@ const cardTeams = computed(() => {
   grid-template-rows: repeat(4, 1fr);
   grid-template-columns: repeat(5, 1fr);
   gap: 10px;
-  min-width: 0;
-  min-height: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .card {
@@ -84,55 +84,64 @@ const cardTeams = computed(() => {
   grid-template-rows: min-content 1fr;
   grid-template-columns: 1fr 1fr;
   place-items: center;
-  min-width: 0;
-  min-height: 0;
-}
 
-.image {
-  z-index: 1;
-  grid-row: 1 / span 2;
-  grid-column: 1 / span 2;
-  min-width: 0;
-  min-height: 0;
-  width: 100%;
-  object-fit: contain;
   border-radius: 10px;
 }
 
 .red-card {
-  border: 10px solid #8f2b1c;
+  border-width: 10px;
+  border-style: solid;
+  border-color: #8f2b1c;
 }
 
 .blue-card {
-  border: 10px solid #3284a3;
+  border-style: solid;
+  border-color: #3284a3;
 }
 
 .innocent-card {
-  border: 10px solid #f3d8b5;
+  border-style: solid;
+  border-color: #f3d8b5;
 }
 
 .assassin-card {
-  border: 10px solid black;
+  border-style: solid;
+  border-color: black;
+}
+
+.image {
+  grid-row: 1 / span 2;
+  grid-column: 1 / span 2;
+
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  contain: size;
+  object-fit: contain;
+  border-radius: 10px;
 }
 
 .vote {
-  z-index: 2;
   grid-row: 1;
   grid-column: 1;
+
+  z-index: 2;
   margin: 5px;
 }
 
 .reveal {
-  z-index: 2;
   grid-row: 1;
   grid-column: 2;
+
+  z-index: 2;
   margin: 5px;
 }
 
 .vote-list {
-  z-index: 2;
   grid-row: 2;
   grid-column: 1 / span 2;
+
+  z-index: 2;
   width: 100%;
   height: 100%;
   display: flex;
@@ -140,10 +149,6 @@ const cardTeams = computed(() => {
   justify-content: flex-start;
   overflow: auto;
   contain: size;
-}
-
-p {
-  margin: 0;
 }
 
 .name {

@@ -34,26 +34,24 @@
         </div>
       </div>
 
-      <div class="game-board">
-        <div v-if="!isMatchmaking">
-          <Cards
-            :events="events"
-            :base-url="imgUrl"
-            :collection="game.collection"
-            :game-id="gameId"
-            :cards="game.cards"
-            :votes="game.votes"
-            :current-team="currentTeam"
-            :allow-actions="allowCardActions"
-            @preview-image="previewImage"
-            @leave-image="leaveImage" />
-        </div>
-        <div v-else>
-          <Host
-            v-if="isHost && isMatchmaking"
-            :events="events"
-            :game-id="gameId" />
-        </div>
+      <div v-if="!isMatchmaking" class="game-board">
+        <Cards
+          :events="events"
+          :base-url="imgUrl"
+          :collection="game.collection"
+          :game-id="gameId"
+          :cards="game.cards"
+          :votes="game.votes"
+          :current-team="currentTeam"
+          :allow-actions="allowCardActions"
+          @preview-image="previewImage"
+          @leave-image="leaveImage" />
+      </div>
+      <div v-else class="game-board">
+        <Host
+          v-if="isHost && isMatchmaking"
+          :events="events"
+          :game-id="gameId" />
       </div>
     </div>
 
@@ -211,6 +209,7 @@ function isInTeam(team) {
   background-color: green;
   width: 100vw;
   height: 100vh;
+  padding: 10px;
 
   display: grid;
   grid-template-rows: min-content min-content min-content 1fr;
