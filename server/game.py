@@ -280,7 +280,7 @@ class Game:
         player_team = curr_team
         description = 'picked card'
         action = f'{card_index}'
-        action_team = curr_team
+        action_team = card.team
         self.history.append(History(player_name, player_team, description, action, action_team))
 
         card = self.cards[card_index]
