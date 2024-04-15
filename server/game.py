@@ -331,7 +331,7 @@ class Game:
                     del actions.votes[card_index]
 
                 actions.guesses += 1
-                if actions.guesses > actions.max_guesses:
+                if actions.guesses >= actions.max_guesses:
                     self.next_state(SpymasterTurn(other_team))
 
     @_checked_agent_action(False)
