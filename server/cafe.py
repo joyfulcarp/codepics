@@ -270,6 +270,15 @@ class Cafe:
 
         self.send_update(game, 'update_game', {})
 
+    @check_schema({'game_id': int})
+    def on_randomize_teams(self, client: str, data):
+        game_id = data['game_id']
+        game = self.games[game_id]
+
+        game.randomize_teams()
+
+        self.send_update(game, 'update_teams', {})
+
     @check_schema({'game_id': int, 'hint': str, 'count': int})
     def on_give_hint(self, client: str, data):
         game_id = data['game_id']

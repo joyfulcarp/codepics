@@ -4,6 +4,7 @@
       <input class="player-name" v-model="new_name" placeholder="ENTER YOUR NAME" />
       <button class="button" @click="updateName()">Update Name</button>
       <button v-if="isHost" class="button" @click="events.resetGame(gameId)">Reset Game</button>
+      <button v-if="isHost && isMatchmaking" class="button" @click="events.randomizeTeams(gameId)">Randomize Teams</button>
     </div>
     <div class="message-info">
       <p v-if="message != ''" class="message">{{ message }}</p>
@@ -199,7 +200,7 @@ const winner = computed(() => {
 const bgColor = computed(() => {
   const blueBg = '#084059'
   const redBg = '#501005'
-  const neutral = 'gray'
+  const neutral = '#404040'
   const colors = {
     'blue_spymaster': blueBg,
     'blue_agents': blueBg,

@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
+from math import floor
 
 import random
 
@@ -216,6 +217,26 @@ class Game:
         self.cards = []
         self.history = []
         self.next_state(Matchmaking())
+
+    def randomize_teams(self):
+        self.teams[Team.BLUE].spymaster = None
+        self.teams[Team.BLUE].members = set()
+        self.teams[Team.RED].spymaster = None
+        self.teams[Team.RED].members = set()
+
+        players = [client for client in self.client_to_name]
+        random.shuffle(players)
+        num = len(players)
+        if num > 0:
+            self.join_team(players[0], Team.BLUE, True)
+        if num > 1:
+            self.join_team(players[1], Team.RED, True)
+        if num > 2:
+            split = floor((num - 2) / 2) + 2
+            for client in players[2:split]:
+                self.join_team(client, Team.BLUE, False)
+            for client in players[split:]:
+                self.join_team(client, Team.RED, False)
 
     def give_hint(self, client: str, hint: str, count: int):
         match self.play_state:

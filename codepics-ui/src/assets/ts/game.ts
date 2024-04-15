@@ -137,6 +137,10 @@ export class GameEvents {
     this.socket.emit('reset_game', {'game_id': gameId})
   }
 
+  randomizeTeams(gameId: number) {
+    this.socket.emit('randomize_teams', {'game_id': gameId})
+  }
+
   giveHint(gameId: number, hint: string, count: number) {
     this.socket.emit('give_hint', {
       'game_id': gameId,

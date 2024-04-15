@@ -82,6 +82,11 @@ def on_reset_game(data):
     cafe.on_reset_game(request.sid, data)
 
 
+@socketio.on('randomize_teams')
+def on_randomize_teams(data):
+    cafe.on_randomize_teams(request.sid, data)
+
+
 @socketio.on('give_hint')
 def on_give_hint(data):
     cafe.on_give_hint(request.sid, data)
