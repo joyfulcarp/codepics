@@ -44,7 +44,7 @@ def team_info(team: Team, game: Game, client: str):
     spymaster = player_info(data.spymaster, game, client) if data.spymaster else None
     cards_left = '-'
     if len(game.cards) > 0:
-        cards_left = sum(1 for c in game.cards if c.team == team and c.hidden)
+        cards_left = game.cards_left(team)
 
     return {
         'agents': agents,

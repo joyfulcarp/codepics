@@ -4,10 +4,10 @@
     <p class="spymaster-text role-text">Spymaster</p>
     <div class="spymaster-info">
       <p v-if="spymaster" class="name" :class="{ 'self-name': spymaster['is_self'] }">{{ spymaster['name'] }}</p>
-      <button class="button" v-if="!spymaster" @click="$emit('joinSpymaster')">Join as Spymaster</button>
+      <button class="button" v-if="showJoinSpymaster" @click="$emit('joinSpymaster')">Join as Spymaster</button>
     </div>
     <p class="agents-text role-text">Agents</p>
-    <button class="agents-button button" v-if="!isSelfInAgents" @click="$emit('joinTeam')">Join as Agent</button>
+    <button class="agents-button button" v-if="showJoinAgents" @click="$emit('joinTeam')">Join as Agent</button>
     <div class="agents-list">
       <p v-for="player in agents" class="name" :class="{ 'self-name': player['is_self'] }">{{ player['name'] }}</p>
     </div>
@@ -21,7 +21,10 @@ defineEmits(['joinTeam', 'joinSpymaster'])
 
 const props = defineProps({
   team: String,
-  info: Object
+  info: Object,
+  allowArbitrarySwaps: Boolean,
+  selfTeam: String,
+  isSpymaster: Boolean
 })
 
 const spymaster = computed(() => { return props.info['spymaster'] })
@@ -29,6 +32,21 @@ const agents = computed(() => { return props.info['agents'] })
 
 const isSelfInAgents = computed(() => {
   return props.info['agents'].some(player => { return player['is_self'] })
+})
+
+const showJoinSpymaster = computed(() => {
+  if (spymaster.value) return false
+  else if (!props.selfTeam) return true
+  else if (props.allowArbitrarySwaps) return true
+  else return props.team == props.selfTeam
+})
+
+const showJoinAgents = computed(() => {
+  if (isSelfInAgents.value) return false
+  else if (props.allowArbitrarySwaps) return true
+  else if (!props.selfTeam) return true
+  else if (props.isSpymaster) return false
+  else return props.team == props.selfTeam
 })
 
 const redColors = {
@@ -59,6 +77,7 @@ p {
 
 .self-name {
   font-weight: bold;
+  font-style: italic;
 }
 
 .role-text {

@@ -133,6 +133,10 @@ export class GameEvents {
     this.socket.emit('start_game', {'game_id': gameId})
   }
 
+  resetGame(gameId: number) {
+    this.socket.emit('reset_game', {'game_id': gameId})
+  }
+
   giveHint(gameId: number, hint: string, count: number) {
     this.socket.emit('give_hint', {
       'game_id': gameId,
@@ -155,7 +159,7 @@ export class GameEvents {
     })
   }
 
-  end_guessing(gameId: number) {
+  endGuessing(gameId: number) {
     this.socket.emit('end_guessing', {
       'game_id': gameId
     })

@@ -3,6 +3,7 @@
     <div class="player-info">
       <input class="player-name" v-model="new_name" placeholder="ENTER YOUR NAME" />
       <button class="button" @click="updateName()">Update Name</button>
+      <button v-if="isHost" class="button" @click="events.resetGame(gameId)">Reset Game</button>
     </div>
     <div class="message-info">
       <p v-if="message != ''" class="message">{{ message }}</p>
@@ -12,12 +13,18 @@
       <Team
         :team="blue"
         :info="blueTeam"
+        :allow-arbitrary-swaps="isMatchmaking"
+        :self-team="selfTeam"
+        :is-spymaster="isSpymaster"
         @join-team="events.joinTeam(gameId, blue, false)"
         @join-spymaster="events.joinTeam(gameId, blue, true)"
         class="blue-team-info" />
       <Team
         :team="red"
         :info="redTeam"
+        :allow-arbitrary-swaps="isMatchmaking"
+        :self-team="selfTeam"
+        :is-spymaster="isSpymaster"
         @join-team="events.joinTeam(gameId, red, false)"
         @join-spymaster="events.joinTeam(gameId, red, true)"
         class="red-team-info" />
@@ -58,6 +65,8 @@
       </div>
     </div>
 
+    <div v-else-if="!name">
+    </div>
     <!-- Else: game == null -->
     <div v-else class="game-connect-error">
       <h1>Error 404: Invalid lobby</h1>
@@ -95,6 +104,9 @@ import { useRoute } from 'vue-router'
 
 const route = useRoute()
 const gameId = ref(null)
+const name = ref(null)
+const new_name = ref(null)
+
 watch(() => route.params.id, (newId, oldId) => {
   if (oldId === newId) return
 
@@ -108,15 +120,15 @@ watch(() => route.params.id, (newId, oldId) => {
 }, {immediate: true})
 
 onMounted(() => {
-  if (name.value != null && gameId.value != null) {
+  if (name.value != null && gameId.value != null)
     events.join(gameId.value, name.value)
-  }
 })
 
 watch(() => gameId, (newId, oldId) => {
   events.leave(oldId)
   game.value = null
-  events.join(newId, name.value)
+  if (name.value && name.value != '')
+    events.join(newId, name.value)
 })
 
 onUnmounted(() => {
@@ -126,10 +138,6 @@ onUnmounted(() => {
 })
 
 const isDebug = import.meta.env.DEV
-
-const name = ref(null)
-// const name = ref('Test')
-const new_name = ref(null)
 
 const game: GameState = ref(null)
 const isHost = ref(false)
@@ -210,8 +218,7 @@ const showPreviewImg = computed(() => {
 })
 
 const message = computed(() => {
-  name.value
-  if (name.value == '')
+  if (!name.value || name.value == '')
     return 'Enter your name.'
   else if (!game.value)
     return ''
@@ -219,6 +226,10 @@ const message = computed(() => {
     return 'Join a team.'
   else if (isMatchmaking.value)
     return 'Waiting for game to start...'
+  else if (winner.value && winner.value == 'blue')
+    return 'Blue team wins!'
+  else if (winner.value && winner.value == 'red')
+    return 'Red team wins!'
   else if (!isActiveTeam.value && isSpymasterTurn.value)
     return 'The opponent spymaster is playing, wait for your turn...'
   else if (!isActiveTeam.value && !isSpymasterTurn.value)
@@ -231,16 +242,13 @@ const message = computed(() => {
     return 'Wait for your spymaster to give a clue...'
   else if (!isSpymaster.value && !isSpymasterTurn.value)
     return 'Try to guess a word.'
-  else if (winner.value && winner.value == 'blue')
-    return 'Blue team wins!'
-  else if (winner.value && winner.value == 'red')
-    return 'Red team wins!'
   else
     return ''
 })
 
 function updateName() {
   name.value = new_name.value
+  events.join(gameId.value, name.value)
 }
 
 function previewImage(url: String) {
@@ -289,6 +297,7 @@ function isInTeam(team) {
 
 .player-name {
   height: 100%;
+  text-transform: none;
 }
 
 .message-info {

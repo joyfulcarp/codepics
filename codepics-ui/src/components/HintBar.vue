@@ -7,7 +7,7 @@
     <button
       class="shrink alt-button"
       v-show="showGiveHintButton"
-      @click="events.giveHint(props.gameId, hint.value, count.value)">Give Hint</button>
+      @click="events.giveHint(props.gameId, hint, count)">Give Hint</button>
     <button
       class="shrink button"
       v-show="showEndGuessingButton"
@@ -33,11 +33,11 @@ const hint = ref('')
 const count = ref(0)
 
 const disableInput = computed(() => {
-  return !props.isActiveTeam || !props.isSpymaster
+  return !props.isActiveTeam || !props.isSpymaster || !props.isSpymasterTurn
 })
 
 const showGiveHintButton = computed(() => {
-  return props.isActiveTeam && props.isSpymaster
+  return props.isActiveTeam && props.isSpymaster && props.isSpymasterTurn
 })
 
 const showEndGuessingButton = computed(() => {
@@ -45,11 +45,10 @@ const showEndGuessingButton = computed(() => {
 })
 
 const placeholder = computed(() => {
-  if (props.isSpymaster) {
-    return "Enter clue here"
-  } else {
-    return "Waiting for hint..."
-  }
+  if (props.isActiveTeam && props.isSpymaster)
+    return 'Enter clue here'
+  else
+    return 'Waiting for hint...'
 })
 
 watch(() => props.suppliedHint, (newHint, oldHint) => {

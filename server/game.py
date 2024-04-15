@@ -135,6 +135,10 @@ class Game:
     def teams_ready(self) -> bool:
         return self.teams[Team.BLUE].ready() and self.teams[Team.RED].ready()
 
+    def cards_left(self, team: Team) -> int:
+        left = sum(1 for c in self.cards if c.team == team and c.hidden)
+        return left
+
     def update_name(self, client: str, name: str):
         if client in self.client_to_name:
             self.client_to_name[client] = name
@@ -210,7 +214,8 @@ class Game:
 
     def reset(self):
         self.cards = []
-        self.next_state(MatchMaking())
+        self.history = []
+        self.next_state(Matchmaking())
 
     def give_hint(self, client: str, hint: str, count: int):
         match self.play_state:
@@ -285,6 +290,13 @@ class Game:
         action = f'{card_index}'
         action_team = card.team
         self.history.append(History(player_name, player_team, description, action, action_team))
+
+        if self.cards_left(curr_team) <= 0:
+            self.next_state(Win(curr_team))
+            return
+        elif self.cards_left(other_team) <= 0:
+            self.next_state(Win(other_team))
+            return
 
         match card.team:
             case Team.ASSASSIN:
