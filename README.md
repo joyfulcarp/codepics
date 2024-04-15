@@ -3,12 +3,16 @@ Locally hosted online board game emulating Codenames: Pictures.
 
 Pictures are not provided and must be placed into a local directory before hosting the server.
 
-## Run
+## Run "Production" Config
+
+Follow commands in `./run.sh`
+
+## Run Development Config
 
 1. `source venv/bin/activate`
 2. Launch backend server
   2.1 `cd server`
-  2.2 `flask run --port=5001`
+  2.2 `flask run --port=5001 --debug`
 3. Launch frontend server
   3.1 `cd codepics-ui`
   3.2 `npm run dev`

@@ -127,8 +127,8 @@ onUnmounted(() => {
 
 const isDebug = import.meta.env.DEV
 
-const name = ref('Test')
-//const name = ref(null)
+const name = ref(null)
+// const name = ref('Test')
 const new_name = ref(null)
 
 const game: GameState = ref(null)

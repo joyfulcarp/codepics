@@ -1,19 +1,20 @@
+import os
+
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_socketio import SocketIO
 
 from cafe import Cafe
 
-frontend_url = 'http://localhost:5173'
-
 app = Flask('codepics')
 app.config.from_object(__name__)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 # Enable CORS
-CORS(app, resources={r'/*': {'origins': frontend_url}})
+CORS(app)
 
 # WebSockets for communication in games
-socketio = SocketIO(app, cors_allowed_origins=frontend_url, logger=True)
+socketio = SocketIO(app, cors_allowed_origins='*', logger=True)
 
 cafe = Cafe(app.debug)
 

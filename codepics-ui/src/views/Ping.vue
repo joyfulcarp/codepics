@@ -16,7 +16,7 @@ export default {
   },
   methods: {
     ping() {
-      const path = 'http://localhost:5001/ping'
+      const path = import.meta.env.VITE_BACKEND_URL + 'ping'
       axios
         .get(path)
         .then((res) => {

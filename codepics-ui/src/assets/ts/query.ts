@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-let url = 'http://localhost:5001/'
+let url = import.meta.env.VITE_BACKEND_URL
 
 export function getUrl() { return url }
 
